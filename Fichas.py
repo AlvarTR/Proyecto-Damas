@@ -59,6 +59,7 @@ class Ficha(ReglasJuego):
             self.filaObjetivo, self.LONG_TABLERO,
             self.movimientos, self.fichasComidas)
 
+
 class Peon(Ficha):
     def movimientosPosibles(self):
         CASILLAS_MOV = 1

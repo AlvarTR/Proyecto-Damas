@@ -76,6 +76,8 @@ class Tablero(ReglasJuego):
         EH = False
         if not isinstance(ficha, Ficha):
             return EH
+        if not self.enPosicion(ficha.x, ficha.y):
+            return EH
         if self.fichaEnCoordenadas(ficha.x, ficha.y):
             return EH
         if ficha.equipo not in self.equipos:
@@ -117,6 +119,7 @@ class Tablero(ReglasJuego):
         quitaFicha(fichaComida)
         fichaCome.comeA(fichaComida, self.turnoActual)
         return True
+
     #----------MOVIMIENTO----------
     def movPosiblesFicha(self, ficha):
         EH = set([])
@@ -357,6 +360,14 @@ class PruebasComerEnTablero(unittest.TestCase):
         movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1, 1))
         self.assertEqual(len(movAlComer), 1+1)
 
+    def testNoPuedeComer1Pieza(self):
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 1, self.e[1]))
+
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 2, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 3, 3, self.e[0]))
+        movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1, 1))
+        self.assertEqual(len(movAlComer), 1)
+
     def testComeSecuenciaPiezasZigZag(self):
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 1, self.e[1]))
 
@@ -365,6 +376,16 @@ class PruebasComerEnTablero(unittest.TestCase):
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 6, self.e[0]))
         movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1, 1))
         self.assertEqual(len(movAlComer), 1+3)
+
+    def testComeSecuenciaPiezasZigZagPeroBloqueado(self):
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 1, self.e[1]))
+
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 2, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 4, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 5, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 6, self.e[0]))
+        movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1, 1))
+        self.assertEqual(len(movAlComer), 1+1)
 
     def testComeSecuenciaPiezasLinea(self):
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 1, self.e[1]))
@@ -386,7 +407,14 @@ class PruebasComerEnTablero(unittest.TestCase):
         self.assertEqual(len(movAlComer), 3)
 
     def testComePiezasHastaObjetivo(self):
-        pass
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 1, self.e[1]))
+
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 2, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 4, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 6, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 5, 5, self.e[0]))
+        movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1, 1))
+        self.assertEqual(len(movAlComer), 1+3)
 
 
 if __name__ == "__main__":
