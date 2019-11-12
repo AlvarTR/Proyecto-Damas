@@ -1,6 +1,8 @@
 from ReglasJuego import ReglasJuego
 from copy import copy, deepcopy
 
+import unittest
+
 class Ficha(ReglasJuego):
     def __init__(self, x, y, equipo, filaObjetivo, LONG_TABLERO=8, movimientos=0, fichasComidas=[]):
         #super() hace de self, asi que solo queda 1 argumento
@@ -93,8 +95,4 @@ class Dama(Ficha):
         return self.equipo[0].capitalize()
 
 if __name__ == "__main__":
-    a = Peon(0,0, "a", 0)
-    b = Peon(1,1, "b", 7)
-    print(a.comeA(b, 1))
-    print(a)
-    print(b)
+    unittest.main()

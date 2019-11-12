@@ -26,11 +26,12 @@ class Tablero(ReglasJuego):
                     if self.filaObjetivoPorEquipo[e] == primeraFila:
                         inicial = self.LONG_TABLERO - self.FILAS_PEONES
                     elif self.filaObjetivoPorEquipo[e] == ultimaFila:
-                        final = primeraFila + self.FILAS_PEONES-1 #-1 para que se comporte bien el bucle
+                        final = primeraFila + self.FILAS_PEONES-1 #-1 para hacer 0 -> self.FILAS_PEONES-1 (2) en el bucle
 
                     for y in range(inicial, final+1): #+1 porque "final" es el ultimo valor que queremos rellenar
                         if self.enPosicion(x, y):
-                            nuevaFicha = Peon(x, y, e, self.filaObjetivoPorEquipo[e], self.LONG_TABLERO)
+                            nuevaFicha = Peon(x, y, e,
+                                self.filaObjetivoPorEquipo[e], self.LONG_TABLERO)
                             self.fichasPorEquipo[e].add(nuevaFicha)
 
         ponerPiezas()
@@ -137,11 +138,12 @@ class Tablero(ReglasJuego):
                 dirY = -1 if y - ficha.y < 0 else 1
                 iX = x
                 iY = y
-                if self.fichaEnCoordenadas(x, y).equipo is not self.equipo:
+                fichaEncontrada = self.fichaEnCoordenadas(x, y)
+                if self.posicionAlComer(ficha, fichaEncontrada):
                     iX += dirX
                     iY += dirY
                 while self.enPosicion(iX, iY):
-                    movimientos.remove( (iX, iY) )
+                    movimientos.discard( (iX, iY) )
                     iX += dirX
                     iY += dirY
 
@@ -200,8 +202,8 @@ class Tablero(ReglasJuego):
         if not self.puedeComer(fichaCome, fichaAComer):
             return EH
 
-        dirX = -1 if fichaAComer.x - fichaAComer.x < 0 else 1
-        dirY = -1 if fichaAComer.y - fichaAComer.y < 0 else 1
+        dirX = -1 if fichaAComer.x - fichaCome.x < 0 else 1
+        dirY = -1 if fichaAComer.y - fichaCome.y < 0 else 1
         saltoX = fichaCome.x + 2*dirX
         saltoY = fichaCome.y + 2*dirY
         if self.fichaEnCoordenadas(saltoX, saltoY):
@@ -215,8 +217,7 @@ class Tablero(ReglasJuego):
             return EH
 
         movAlComer = set([])
-        movimientos = self.movPosiblesFicha(ficha)
-        for x, y in movimientos:
+        for x, y in self.movPosiblesFicha(ficha):
             fichaObjetivo = self.fichaEnCoordenadas(x, y)
             if not fichaObjetivo:
                 continue
@@ -232,10 +233,7 @@ class Tablero(ReglasJuego):
             copiaFicha = ficha.__copy__()
             copiaFicha.x = coordenadasAlComer[0]
             copiaFicha.y = coordenadasAlComer[1]
-            print(copiaFicha)
             colocada = self.colocaFicha( copiaFicha )
-            if colocada:
-                print(self)
             for coordenadas in self.movPosiblesAlComer(copiaFicha):
                 movAlComer.add(coordenadas)
             self.quitaFicha(copiaFicha)
@@ -306,54 +304,87 @@ class PruebasInsertarEnTablero(unittest.TestCase):
         self.assertTrue(self.t.quitaFicha(self.t.fichaEnCoordenadas(7,7)))
         self.assertEqual(len(self.t.fichasPorEquipo[self.e[0]]), 3*4-1)
 
-class PruebasComerEnTablero(unittest.TestCase):
+    def testColocaDamaQuitaDama(self):
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Dama, 3, 3, self.e[0]))
+        self.assertEqual(len(self.t.fichasPorEquipo[self.e[0]]), 3*4+1)
+        self.assertTrue(self.t.quitaFicha(self.t.fichaEnCoordenadas(3, 3)))
+        self.assertEqual(len(self.t.fichasPorEquipo[self.e[0]]), 3*4)
+
+    def testNoPuedeQuitarFicha(self):
+        self.assertFalse(self.t.quitaFicha(self.t.fichaEnCoordenadas(3, 3)))
+
+
+class PruebasMoverseEnTablero(unittest.TestCase):
     def setUp(self):
         self.t = Tablero()
         self.e = self.t.equipos
 
-    def testColocaDamaQuitaDama(self):
+    def testMovPeonBloqueado(self):
+        movPeon = set(self.t.movValidosFicha(self.t.fichaEnCoordenadas(0, 0)))
+        self.assertEqual(len(movPeon), 0)
+
+    def testMovPeonSolo(self):
+        for e in self.t.fichasPorEquipo:
+            self.t.fichasPorEquipo[e] = set([])
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 2, self.e[0]))
+        movPeon = set(self.t.movPosiblesFicha(self.t.fichaEnCoordenadas(2, 2)))
+        self.assertEqual(len(movPeon), 2)
+
+    def testMovDamaBloqueada(self):
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Dama, 3, 3, self.e[0]))
-        self.assertEqual(len(self.t.fichasPorEquipo[self.e[0]]), 3*4+1)
-        self.assertTrue(self.t.quitaFicha(self.t.fichaEnCoordenadas(3,3)))
-        self.assertEqual(len(self.t.fichasPorEquipo[self.e[0]]), 3*4)
+        movDama = set(self.t.movPosiblesFicha(self.t.fichaEnCoordenadas(3, 3)))
+        self.assertEqual(len(movDama), 2)
+
+    def testMovDamaSola(self):
+        for e in self.t.fichasPorEquipo:
+            self.t.fichasPorEquipo[e] = set([])
+        self.t.colocaFichaEnCoordenadas(Dama, 3, 3, self.e[0])
+        movDama = set(self.t.movPosiblesFicha(self.t.fichaEnCoordenadas(3, 3)))
+        self.assertEqual(len(movDama), 3+3+3+4)
+
+
+class PruebasComerEnTablero(unittest.TestCase):
+    def setUp(self):
+        self.t = Tablero()
+        for e in self.t.fichasPorEquipo:
+            self.t.fichasPorEquipo[e] = set([])
+        self.e = self.t.equipos
 
     def testCome1Pieza(self):
-        for e in self.t.fichasPorEquipo:
-            self.t.fichasPorEquipo[e] = set([])
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 1, self.e[1]))
+
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 2, self.e[0]))
         movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1, 1))
-        self.assertEqual(len(movAlComer), 2)
-        #print(self.t)
-        print(movAlComer)
+        self.assertEqual(len(movAlComer), 1+1)
 
     def testComeSecuenciaPiezasZigZag(self):
-        for e in self.t.fichasPorEquipo:
-            self.t.fichasPorEquipo[e] = set([])
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 1, self.e[1]))
+
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 2, self.e[0]))
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 4, self.e[0]))
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 6, self.e[0]))
-        movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1,1))
-        self.assertEqual(len(movAlComer), 3)
-        print(self.t)
-        print(movAlComer)
+        movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1, 1))
+        self.assertEqual(len(movAlComer), 1+3)
 
     def testComeSecuenciaPiezasLinea(self):
-        for e in self.t.fichasPorEquipo:
-            self.t.fichasPorEquipo[e] = set([])
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 1, 1, self.e[1]))
+
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 2, self.e[0]))
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 4, 4, self.e[0]))
         self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 6, 6, self.e[0]))
-        movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1,1))
-        self.assertEqual(len(movAlComer), 4)
-        print(self.t)
-        print(movAlComer)
-
+        movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(1, 1))
+        self.assertEqual(len(movAlComer), 1+3)
 
     def testComePiezasConCaminosConver(self):
-        pass
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 3, 1, self.e[1]))
+
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 2, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 2, 4, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 4, 2, self.e[0]))
+        self.assertTrue(self.t.colocaFichaEnCoordenadas(Peon, 4, 4, self.e[0]))
+        movAlComer = self.t.movValidosFicha(self.t.fichaEnCoordenadas(3, 1))
+        self.assertEqual(len(movAlComer), 3)
+
     def testComePiezasHastaObjetivo(self):
         pass
 
