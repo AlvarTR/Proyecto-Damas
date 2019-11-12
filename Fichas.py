@@ -18,10 +18,13 @@ class Ficha(ReglasJuego):
         pass
 
     def moverA(self, xObjetivo, yObjetivo):
+        EH = False
         if not self.enPosicion(xObjetivo, yObjetivo):
-            return
+            return EH
+
         self.x = xObjetivo
         self.y = yObjetivo
+        return True
 
     def comida(self, turno):
         self.x = self.LONG_TABLERO
@@ -50,7 +53,9 @@ class Ficha(ReglasJuego):
         return string
 
     def __copy__(self):
-        return type(self)(self.x, self.y, self.equipo, self.filaObjetivo, self.LONG_TABLERO, self.movimientos)
+        return type(self)(self.x, self.y, self.equipo,
+            self.filaObjetivo, self.LONG_TABLERO,
+            self.movimientos, self.fichasComidas)
 
 class Peon(Ficha):
     def movimientosPosibles(self):
