@@ -1,20 +1,19 @@
 from collections import namedtuple
 
-PEON = "PEON"
-DAMA = "Dama"
+Ficha = namedtuple("Ficha", ["movMax", "puedeIrAtras", "equipo"])
 
-class Ficha(namedtuple("Ficha", ["tipo", "movMax", "puedeIrAtras", "equipo"])):
+
+class Peon(Ficha):
     def __repr__(self):
-        string = self.equipo[0]
-        if self.tipo == PEON:
-            string = string.lower()
-        elif self.tipo == DAMA:
-            string = string.capitalize()
-        return string
+        return self.equipo[0].lower()
+
+class Dama(Ficha):
+    def __repr__(self):
+        return self.equipo[0].capitalize()
 
 
 def nuevoPeon(equipo):
-    return Ficha(tipo=PEON, movMax=1, puedeIrAtras=False, equipo=equipo)
+    return Peon(movMax=1, puedeIrAtras=False, equipo=equipo)
 
 def nuevaDama(equipo, filasTablero):
-    return Ficha(tipo=DAMA, movMax=filasTablero, puedeIrAtras=True, equipo=equipo)
+    return Dama(movMax=filasTablero, puedeIrAtras=True, equipo=equipo)
