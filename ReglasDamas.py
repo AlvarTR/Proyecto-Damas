@@ -1,6 +1,10 @@
-def enPosicion(x, y, longTablero):
-    if x >= 0 and x < longTablero:
-        if y >= 0 and y < longTablero:
-            if (x + y) % 2 == 0:
-                return True
-    return False
+def posicionValida(x, y, longTablero):
+    EH = False
+    if x < 0 or x >= longTablero:
+        return EH
+    if y < 0 or y >= longTablero:
+        return EH
+    if (x + y) % 2 != 0:
+        return EH
+
+    return True

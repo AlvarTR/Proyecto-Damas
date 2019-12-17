@@ -1,5 +1,5 @@
 from Fichas import *
-from ReglasDamas import *
+import ReglasDamas
 
 class Tablero():
     def __init__(self, equipos=("Blanco", "Negro"), longTablero=8, relacionCasillasFichas=0.4, nuevoTablero=True):
@@ -8,15 +8,16 @@ class Tablero():
         self.RELACION_CASILLAS_FICHAS = relacionCasillasFichas
         self.FILAS_PEONES = int(self.LONG_TABLERO * self.RELACION_CASILLAS_FICHAS)
 
-        self.peon = nuevoPeon()
-        self.dama = nuevaDama(self.LONG_TABLERO)
+        self.PEON = nuevoPeon()
+        self.DAMA = nuevaDama(self.LONG_TABLERO)
 
         self.filaObjetivoPorEquipo = {self.EQUIPOS[0]:0, self.EQUIPOS[1]:self.LONG_TABLERO-1}
         self.turnoActual = 0
         self.fichasDelEquipo = {e:{} for e in self.EQUIPOS}
         self.fichasComidasPorElEquipo = {e:[] for e in self.EQUIPOS}
 
-        self.ponFichasIniciales()
+        if nuevoTablero:
+            self.ponFichasIniciales()
 
     def ponFichasIniciales(self):
         primeraFila = 0
@@ -31,8 +32,8 @@ class Tablero():
                 final = primeraFila + self.FILAS_PEONES-1 #-1 para hacer 0 -> self.FILAS_PEONES-1 (2) en el bucle
 
             for y in range(inicial, final+1): #+1 porque "final" es el ultimo valor que queremos rellenar
-                for x in iter(x for x in range(self.LONG_TABLERO) if enPosicion(x, y, self.LONG_TABLERO)):
-                    self.fichasDelEquipo[e][(x, y)] = self.peon
+                for x in iter(x for x in range(self.LONG_TABLERO) if ReglasDamas.posicionValida(x, y, self.LONG_TABLERO)):
+                    self.fichasDelEquipo[e][(x, y)] = self.PEON
 
     def __str__(self):
         string = "_" * (2*self.LONG_TABLERO + 1) + "\n"
@@ -40,14 +41,13 @@ class Tablero():
         for y in range(self.LONG_TABLERO):
             fila = ""
             for x in range(self.LONG_TABLERO):
-                for e in self.fichasDelEquipo:
-                    ficha = self.fichasDelEquipo[e].get( (x, y), None )
-                    if ficha:
-                        if isinstance(ficha, Peon):
-                            fila += e[0].lower()
-                        elif isinstance(ficha, Dama):
-                            fila += e[0].capitalize()
-                        break
+                e = self.equipoEnCoordenadas(x, y)
+                if e:
+                    ficha = self.fichasDelEquipo[e][(x, y)]
+                    if isinstance(ficha, Peon):
+                        fila += e[0].lower()
+                    elif isinstance(ficha, Dama):
+                        fila += e[0].capitalize()
                 else:
                     fila += "_"
 
@@ -57,23 +57,35 @@ class Tablero():
         return string
 
     def __copy__(self):
-        t = Tablero(self.EQUIPOS, self.LONG_TABLERO, self.RELACION_CASILLAS_FICHAS)
+        t = Tablero(self.EQUIPOS, self.LONG_TABLERO, self.RELACION_CASILLAS_FICHAS, False)
         t.turnoActual = self.turnoActual
-        t.fichasDelEquipo = {e:{} for e in self.EQUIPOS}
-        t.fichasComidasPorElEquipo = {e:[] for e in self.EQUIPOS}
+
         for e in self.EQUIPOS:
             for coor, ficha in self.fichasDelEquipo[e].items():
                 if isinstance(ficha, Peon):
-                    t.fichasDelEquipo[e][coor] = t.peon
+                    t.fichasDelEquipo[e][coor] = t.PEON
                 elif isinstance(ficha, Dama):
-                    t.fichasDelEquipo[e][coor] = t.dama
+                    t.fichasDelEquipo[e][coor] = t.DAMA
 
             for ficha in self.fichasComidasPorElEquipo[e]:
-                if ficha.isinstance(Peon):
-                    t.fichasComidasPorElEquipo[coor] = t.peon
-                elif ficha.isinstance(Dama):
-                    t.fichasComidasPorElEquipo[coor] = t.dama
+                if isinstance(ficha, Peon):
+                    t.fichasComidasPorElEquipo[e].append(t.PEON)
+                elif isinstance(ficha, Dama):
+                    t.fichasComidasPorElEquipo[e].append(t.DAMA)
         return t
+
+    def equipoEnCoordenadas(self, x, y):
+        EH = None
+        if not ReglasDamas.posicionValida(x, y, self.LONG_TABLERO):
+            return EH
+
+        for e, fichasEquipo in self.fichasDelEquipo.items():
+            if (x, y) in fichasEquipo:
+                return e
+        else:
+            return EH
+
+
 
 if __name__ == "__main__":
     t = Tablero()
