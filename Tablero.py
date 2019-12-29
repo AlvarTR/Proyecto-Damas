@@ -36,23 +36,26 @@ class Tablero():
                     self.fichasDelEquipo[e][(x, y)] = self.PEON
 
     def __str__(self):
-        string = "_" * (2*self.LONG_TABLERO + 1) + "\n"
+        string = "\n"
 
         for y in range(self.LONG_TABLERO):
-            fila = ""
             for x in range(self.LONG_TABLERO):
+                ficha = None
                 e = self.equipoEnCoordenadas(x, y)
                 if e:
                     ficha = self.fichasDelEquipo[e][(x, y)]
-                    if isinstance(ficha, Peon):
-                        fila += e[0].lower()
-                    elif isinstance(ficha, Dama):
-                        fila += e[0].capitalize()
-                else:
-                    fila += "_"
 
-            fila = "|".join(fila)
-            string += "|" + fila + "| \n"
+                if isinstance(ficha, Peon):
+                    string += e[0].lower()
+                elif isinstance(ficha, Dama):
+                    string += e[0].capitalize()
+                else:
+                    string += "_"
+
+            string += "\n"
+
+        string = "|".join(string)
+        string = "_" * (2*self.LONG_TABLERO + 1) + string
 
         return string
 
