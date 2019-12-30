@@ -44,6 +44,15 @@ class Tablero():
         else:
             return EH
 
+    def movimientosFicha(self, x, y):
+        pass
+
+    def movimientosEquipo(self, equipo):
+        pass
+
+    def movimientos(self):
+        pass
+
     def __str__(self):
         string = "\n"
 
