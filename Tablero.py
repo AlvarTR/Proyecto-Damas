@@ -2,7 +2,7 @@ from Fichas import *
 import ReglasDamas
 
 class Tablero():
-    def __init__(self, equipos=("Blanco", "Negro"), longTablero=8, relacionCasillasFichas=0.4, nuevoTablero=True):
+    def __init__(self, equipos=("Blanco", "Negro"), longTablero=8, relacionCasillasFichas=0.4):
         self.EQUIPOS = equipos
         self.LONG_TABLERO = longTablero
         self.RELACION_CASILLAS_FICHAS = relacionCasillasFichas
@@ -16,8 +16,6 @@ class Tablero():
         self.fichasDelEquipo = {e:{} for e in self.EQUIPOS}
         self.fichasComidasPorElEquipo = {e:[] for e in self.EQUIPOS}
 
-        if nuevoTablero:
-            self.ponFichasIniciales()
 
     def ponFichasIniciales(self):
         primeraFila = 0
@@ -34,6 +32,17 @@ class Tablero():
             for y in range(inicial, final+1): #+1 porque "final" es el ultimo valor que queremos rellenar
                 for x in iter(x for x in range(self.LONG_TABLERO) if ReglasDamas.posicionValida(x, y, self.LONG_TABLERO)):
                     self.fichasDelEquipo[e][(x, y)] = self.PEON
+
+    def equipoEnCoordenadas(self, x, y):
+        EH = None
+        if not ReglasDamas.posicionValida(x, y, self.LONG_TABLERO):
+            return EH
+
+        for e, fichasEquipo in self.fichasDelEquipo.items():
+            if (x, y) in fichasEquipo:
+                return e
+        else:
+            return EH
 
     def __str__(self):
         string = "\n"
@@ -60,7 +69,7 @@ class Tablero():
         return string
 
     def __copy__(self):
-        t = Tablero(self.EQUIPOS, self.LONG_TABLERO, self.RELACION_CASILLAS_FICHAS, False)
+        t = Tablero(self.EQUIPOS, self.LONG_TABLERO, self.RELACION_CASILLAS_FICHAS)
         t.turnoActual = self.turnoActual
 
         for e in self.EQUIPOS:
@@ -77,21 +86,10 @@ class Tablero():
                     t.fichasComidasPorElEquipo[e].append(t.DAMA)
         return t
 
-    def equipoEnCoordenadas(self, x, y):
-        EH = None
-        if not ReglasDamas.posicionValida(x, y, self.LONG_TABLERO):
-            return EH
-
-        for e, fichasEquipo in self.fichasDelEquipo.items():
-            if (x, y) in fichasEquipo:
-                return e
-        else:
-            return EH
-
-
 
 if __name__ == "__main__":
     t = Tablero()
+    t.ponFichasIniciales()
     t.fichasDelEquipo["Negro"].pop( (0, 0) )
     tCopia = t.__copy__()
     t.fichasDelEquipo["Negro"].pop( (2, 0) )
