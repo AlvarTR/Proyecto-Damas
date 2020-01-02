@@ -1,7 +1,8 @@
 from Fichas import *
 import ReglasDamas
+import unittest
 
-Movimientos = namedtuple("Movimientos", ["TipoFicha", "Coordenada", "ListaMov"])
+Movimientos = namedtuple("Movimientos", ["coordenada", "movs"])
 
 class Tablero():
     def __init__(self, equipos=("Blanco", "Negro"), longTablero=8, relacionCasillasFichas=0.4):
@@ -35,6 +36,13 @@ class Tablero():
                 for x in iter(x for x in range(self.LONG_TABLERO) if ReglasDamas.posicionValida(x, y, self.LONG_TABLERO)):
                     self.fichasDelEquipo[e][(x, y)] = self.PEON
 
+    def numFichasEnTablero(self):
+        contador = 0
+        for e in self.fichasDelEquipo:
+            # Se podria hacer con sum(), pero me parece mas complicado
+            contador += len( self.fichasDelEquipo[e] )
+        return contador
+
     def equipoEnCoordenadas(self, x, y):
         EH = None
         if not ReglasDamas.posicionValida(x, y, self.LONG_TABLERO):
@@ -56,7 +64,6 @@ class Tablero():
 
         return self._movimientosFicha(equipo, x, y)
 
-
     def _movimientosFicha(self, equipo, x, y):
         """
         Se espera que el equipo ya este comprobado de antemano.
@@ -72,7 +79,7 @@ class Tablero():
             return EH
 
         dirY = -1 if self.filaObjetivoPorEquipo[equipo] - y < 0 else 1
-
+        movs = set([])
         i = 0
         while i < ficha.movMax:
             i += 1
@@ -88,14 +95,9 @@ class Tablero():
                     if not ReglasDamas.posicionValida(auxX, auxY):
                         continue
 
-                    yield ( (x, y), (auxX, auxY) )
+                    movs.add( (auxX, auxY) )
 
-
-
-
-
-
-        #return ( (x, y), (movs) )
+        return Movimientos( coordenada=(x, y), movs=movs )
 
 
     def movimientosEquipo(self, equipo):
@@ -105,12 +107,8 @@ class Tablero():
             return EH
 
         for (x, y) in self.fichasDelEquipo[equipo]:
-            listaMovsEstaFicha = [ (x, y) ]
+            yield self._movimientosFicha(equipo, x, y)
 
-
-    def movimientos(self):
-        for e in fichasDelEquipo:
-            yield movimientosEquipo(e)
 
 
     def __str__(self):
@@ -156,11 +154,19 @@ class Tablero():
         return t
 
 
+class PruebasTablero(unittest.TestCase):
+    def setUp(self):
+        self.t = Tablero()
+        self.t.ponFichasIniciales()
+
+    def testCopia(self):
+        copiaT = self.t.__copy__()
+        coor = (0, 0)
+        e = copiaT.equipoEnCoordenadas(coor[0], coor[1])
+        copiaT.fichasDelEquipo[e].pop( coor )
+        self.assertTrue(self.t.numFichasEnTablero() > copiaT.numFichasEnTablero())
+
+
+
 if __name__ == "__main__":
-    t = Tablero()
-    t.ponFichasIniciales()
-    t.fichasDelEquipo["Negro"].pop( (0, 0) )
-    tCopia = t.__copy__()
-    t.fichasDelEquipo["Negro"].pop( (2, 0) )
-    print(t)
-    print(tCopia)
+    unittest.main()
