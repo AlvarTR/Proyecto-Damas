@@ -1,6 +1,8 @@
 from Fichas import *
 import ReglasDamas
 
+Movimientos = namedtuple("Movimientos", ["TipoFicha", "Coordenada", "ListaMov"])
+
 class Tablero():
     def __init__(self, equipos=("Blanco", "Negro"), longTablero=8, relacionCasillasFichas=0.4):
         self.EQUIPOS = equipos
@@ -44,14 +46,72 @@ class Tablero():
         else:
             return EH
 
-    def movimientosFicha(self, x, y):
-        pass
+
+    def movimientosFichaEnCoordenadas(self, x, y):
+        EH = None
+
+        equipo = self.equipoEnCoordenadas(x, y)
+        if not equipo:
+            return EH
+
+        return self._movimientosFicha(equipo, x, y)
+
+
+    def _movimientosFicha(self, equipo, x, y):
+        """
+        Se espera que el equipo ya este comprobado de antemano.
+        """
+        EH = None
+
+        dictEquipo = self.fichasDelEquipo.get(equipo, None)
+        if not dictEquipo:
+            return EH
+
+        ficha = dictEquipo.get( (x, y), None )
+        if not ficha:
+            return EH
+
+        dirY = -1 if self.filaObjetivoPorEquipo[equipo] - y < 0 else 1
+
+        i = 0
+        while i < ficha.movMax:
+            i += 1
+
+            yAlante = y + i*dirY
+            yAtras = y - i*dirY
+
+            for auxY in (yAlante, yAtras):
+                if auxY == yAtras and not ficha.puedeIrAtras:
+                    continue
+
+                for auxX in (x - i, x + i):
+                    if not ReglasDamas.posicionValida(auxX, auxY):
+                        continue
+
+                    yield ( (x, y), (auxX, auxY) )
+
+
+
+
+
+
+        #return ( (x, y), (movs) )
+
 
     def movimientosEquipo(self, equipo):
-        pass
+        EH = None
+
+        if equipo not in self.EQUIPOS:
+            return EH
+
+        for (x, y) in self.fichasDelEquipo[equipo]:
+            listaMovsEstaFicha = [ (x, y) ]
+
 
     def movimientos(self):
-        pass
+        for e in fichasDelEquipo:
+            yield movimientosEquipo(e)
+
 
     def __str__(self):
         string = "\n"
@@ -63,9 +123,9 @@ class Tablero():
                 if e:
                     ficha = self.fichasDelEquipo[e][(x, y)]
 
-                if isinstance(ficha, Peon):
+                if ficha is self.PEON:
                     string += e[0].lower()
-                elif isinstance(ficha, Dama):
+                elif ficha is self.DAMA:
                     string += e[0].capitalize()
                 else:
                     string += "_"
@@ -83,15 +143,15 @@ class Tablero():
 
         for e in self.EQUIPOS:
             for coor, ficha in self.fichasDelEquipo[e].items():
-                if isinstance(ficha, Peon):
+                if ficha is self.PEON:
                     t.fichasDelEquipo[e][coor] = t.PEON
-                elif isinstance(ficha, Dama):
+                elif ficha is self.DAMA:
                     t.fichasDelEquipo[e][coor] = t.DAMA
 
             for ficha in self.fichasComidasPorElEquipo[e]:
-                if isinstance(ficha, Peon):
+                if ficha is self.PEON:
                     t.fichasComidasPorElEquipo[e].append(t.PEON)
-                elif isinstance(ficha, Dama):
+                elif ficha is self.DAMA:
                     t.fichasComidasPorElEquipo[e].append(t.DAMA)
         return t
 
