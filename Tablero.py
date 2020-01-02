@@ -5,11 +5,12 @@ import unittest
 Movimientos = namedtuple("Movimientos", ["coordenada", "movs"])
 
 class Tablero():
-    def __init__(self, equipos=("Blanco", "Negro"), longTablero=8, relacionCasillasFichas=0.4):
-        self.EQUIPOS = equipos
+    def __init__(self, longTablero=8, relacionCasillasFichas=0.4, equipos=("Blanco", "Negro")):
         self.LONG_TABLERO = longTablero
         self.RELACION_CASILLAS_FICHAS = relacionCasillasFichas
         self.FILAS_PEONES = int(self.LONG_TABLERO * self.RELACION_CASILLAS_FICHAS)
+
+        self.EQUIPOS = equipos
 
         self.PEON = nuevoPeon()
         self.DAMA = nuevaDama(self.LONG_TABLERO)
@@ -92,7 +93,14 @@ class Tablero():
                     continue
 
                 for auxX in (x - i, x + i):
-                    if not ReglasDamas.posicionValida(auxX, auxY):
+                    if not ReglasDamas.posicionValida(auxX, auxY, self.LONG_TABLERO):
+                        continue
+
+                    equipoFichaEncontrada = self.equipoEnCoordenadas(auxX, auxY)
+                    if equipoFichaEncontrada:
+                        if equipoFichaEncontrada is equipo:
+                            continue
+                        # TODO comer fichas
                         continue
 
                     movs.add( (auxX, auxY) )
@@ -107,7 +115,9 @@ class Tablero():
             return EH
 
         for (x, y) in self.fichasDelEquipo[equipo]:
-            yield self._movimientosFicha(equipo, x, y)
+            movsFicha = self._movimientosFicha(equipo, x, y)
+            if movsFicha.movs:
+                yield self._movimientosFicha(equipo, x, y)
 
 
 
@@ -136,7 +146,7 @@ class Tablero():
         return string
 
     def __copy__(self):
-        t = Tablero(self.EQUIPOS, self.LONG_TABLERO, self.RELACION_CASILLAS_FICHAS)
+        t = Tablero(self.LONG_TABLERO, self.RELACION_CASILLAS_FICHAS, self.EQUIPOS)
         t.turnoActual = self.turnoActual
 
         for e in self.EQUIPOS:
@@ -159,14 +169,30 @@ class PruebasTablero(unittest.TestCase):
         self.t = Tablero()
         self.t.ponFichasIniciales()
 
-    def testCopia(self):
+    def testCopiaEliminandoUnaFicha(self):
         copiaT = self.t.__copy__()
         coor = (0, 0)
         e = copiaT.equipoEnCoordenadas(coor[0], coor[1])
         copiaT.fichasDelEquipo[e].pop( coor )
         self.assertTrue(self.t.numFichasEnTablero() > copiaT.numFichasEnTablero())
 
+    def testMovsIniciales(self):
+        listaMovimientos = []
+        for e in self.t.fichasDelEquipo:
+            listaMovimientos = list(self.t.movimientosEquipo(e))
+            self.assertEqual(len(listaMovimientos), 4)
+
+            casillasPosiblesAlMover = []
+            for movimiento in listaMovimientos:
+                for m in movimiento.movs:
+                    casillasPosiblesAlMover.append(m)
+            self.assertEqual(len(casillasPosiblesAlMover), 7)
+
+
 
 
 if __name__ == "__main__":
+    t = Tablero()
+    t.ponFichasIniciales()
+
     unittest.main()
