@@ -56,14 +56,45 @@ class Tablero():
             return EH
 
 
-    def movimientosFichaEnCoordenadas(self, x, y):
+    def movimientosEnCoordenadas(self, x, y):
         EH = None
 
         equipo = self.equipoEnCoordenadas(x, y)
         if not equipo:
             return EH
 
-        return self._movimientosFicha(equipo, x, y)
+        return self._movimientosValidosFicha(equipo, x, y)
+
+
+    def _movimientosValidosFicha(self, equipo, x, y):
+        """
+        Se espera que el equipo ya este comprobado de antemano.
+        """
+        EH = None
+
+        dictEquipo = self.fichasDelEquipo.get(equipo, None)
+        if not dictEquipo:
+            return EH
+
+        ficha = dictEquipo.get( (x, y), None )
+        if not ficha:
+            return EH
+
+        movimientos = self._movimientosFicha(equipo, x, y)
+        movimientosValidos = Movimientos(coordenada=(x, y), movs=[])
+        for xMov, yMov in movimientos.movs:
+            equipoDeFichaObjetivo = self.equipoEnCoordenadas(xMov, yMov)
+            if not equipoDeFichaObjetivo:
+                movimientosValidos.movs.append( (xMov, yMov) )
+            else:
+                if equipoDeFichaObjetivo is not equipo:
+                    #TODO mejorar
+                    movimientosValidos.movs.append(self._fichaComeA(ficha, equipo, x, y, xMov, yMov))
+
+        if not movimientosValidos.movs:
+            return EH
+
+        return movimientosValidos
 
     def _movimientosFicha(self, equipo, x, y):
         """
@@ -80,7 +111,7 @@ class Tablero():
             return EH
 
         dirY = -1 if self.filaObjetivoPorEquipo[equipo] - y < 0 else 1
-        movs = set([])
+        movs = []
         i = 0
         while i < ficha.movMax:
             i += 1
@@ -96,16 +127,31 @@ class Tablero():
                     if not ReglasDamas.posicionValida(auxX, auxY, self.LONG_TABLERO):
                         continue
 
-                    equipoFichaEncontrada = self.equipoEnCoordenadas(auxX, auxY)
-                    if equipoFichaEncontrada:
-                        if equipoFichaEncontrada is equipo:
-                            continue
-                        # TODO comer fichas
-                        continue
-
-                    movs.add( (auxX, auxY) )
+                    movs.append( (auxX, auxY) )
 
         return Movimientos( coordenada=(x, y), movs=movs )
+
+
+    def _fichaComeA(self, ficha, equipo, xInicial, yInicial, xObjetivo, yObjetivo):
+        EH = []
+        if xInicial == xObjetivo:
+            return EH
+        if yInicial == yObjetivo:
+            return EH
+        #En posicion objetivo tiene que haber una ficha
+        equipoObjetivo = self.equipoEnCoordenadas(xObjetivo, yObjetivo)
+        if not equipoObjetivo:
+            return EH
+        if equipo == equipoObjetivo:
+            return EH
+        #TODO: + ERROR HANDLING
+
+        dirX = -1 if xObjetivo - xInicial < 0 else 1
+        dirY = -1 if yObjetivo - yInicial < 0 else 1
+        if not ficha.puedeIrAtras:
+            dirYPermitida = -1 if self.filaObjetivoPorEquipo[equipo] - yInicial < 0 else 1
+            if dirY != dirYPermitida:
+                return EH
 
 
     def movimientosEquipo(self, equipo):
@@ -115,10 +161,9 @@ class Tablero():
             return EH
 
         for (x, y) in self.fichasDelEquipo[equipo]:
-            movsFicha = self._movimientosFicha(equipo, x, y)
-            if movsFicha.movs:
-                yield self._movimientosFicha(equipo, x, y)
-
+            movimientosValidos = self._movimientosValidosFicha(equipo, x, y)
+            if movimientosValidos:
+                yield movimientosValidos
 
 
     def __str__(self):
@@ -186,8 +231,21 @@ class PruebasTablero(unittest.TestCase):
             for movimiento in listaMovimientos:
                 for m in movimiento.movs:
                     casillasPosiblesAlMover.append(m)
+
             self.assertEqual(len(casillasPosiblesAlMover), 7)
 
+    def testComerEncadenado(self):
+        t = Tablero()
+        t.fichasDelEquipo[ t.EQUIPOS[0] ][ (0, 0) ] = t.PEON
+        t.fichasDelEquipo[ t.EQUIPOS[1] ][ (1, 1) ] = t.PEON
+        t.fichasDelEquipo[ t.EQUIPOS[1] ][ (3, 3) ] = t.PEON
+        t.fichasDelEquipo[ t.EQUIPOS[1] ][ (5, 5) ] = t.PEON
+        movimientos = t.movimientosEnCoordenadas(0, 0)
+        print(movimientos)
+        self.assertTrue(movimientos)
+        self.assertTrue(movimientos.movs)
+        self.assertEqual(len(movimientos.movs), 1)
+        self.assertEqual(len(movimientos.movs[0]), 3)
 
 
 
