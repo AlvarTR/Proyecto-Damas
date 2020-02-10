@@ -20,6 +20,30 @@ class Tablero():
         self.fichasDelEquipo = {e:{} for e in self.EQUIPOS}
         self.fichasComidasPorElEquipo = {e:[] for e in self.EQUIPOS}
 
+    def ponFicha(self, ficha, equipo, x, y):
+        EH = False
+        if not ReglasDamas.posicionValida(x, y, self.LONG_TABLERO):
+            return EH
+        if equipo not in self.EQUIPOS:
+            return EH
+        if ficha is not (self.PEON or self.DAMA):
+            return EH
+        if not self.equipoEnCoordenadas(x, y):
+            return EH
+
+        self.fichasDelEquipo[equipo][(x, y)] = ficha
+        return True
+
+    def quitaFicha(self, x, y):
+        EH = None
+
+        equipo = self.equipoEnCoordenadas(x, y)
+        if not equipo:
+            return EH
+
+        ficha = self.fichasDelEquipo[equipo][ (x,y) ]
+        self.fichasDelEquipo[equipo][ (x, y) ] = None
+        return ficha
 
     def ponFichasIniciales(self):
         primeraFila = 0
@@ -82,6 +106,8 @@ class Tablero():
 
         movimientos = self._movimientosFicha(equipo, x, y)
         movimientosValidos = Movimientos(coordenada=(x, y), movs=[])
+
+        ficha = self.quitaFicha(x, y)
         for xMov, yMov in movimientos.movs:
             equipoDeFichaObjetivo = self.equipoEnCoordenadas(xMov, yMov)
             if not equipoDeFichaObjetivo:
@@ -90,6 +116,7 @@ class Tablero():
                 if equipoDeFichaObjetivo is not equipo:
                     #TODO mejorar
                     movimientosValidos.movs.append(self._fichaComeA(ficha, equipo, x, y, xMov, yMov))
+        self.ponFicha(ficha, equipo, x, y)
 
         if not movimientosValidos.movs:
             return EH
@@ -101,7 +128,6 @@ class Tablero():
         Se espera que el equipo ya este comprobado de antemano.
         """
         EH = None
-
         dictEquipo = self.fichasDelEquipo.get(equipo, None)
         if not dictEquipo:
             return EH
@@ -145,13 +171,35 @@ class Tablero():
         if equipo == equipoObjetivo:
             return EH
         #TODO: + ERROR HANDLING
-
         dirX = -1 if xObjetivo - xInicial < 0 else 1
         dirY = -1 if yObjetivo - yInicial < 0 else 1
-        if not ficha.puedeIrAtras:
-            dirYPermitida = -1 if self.filaObjetivoPorEquipo[equipo] - yInicial < 0 else 1
-            if dirY != dirYPermitida:
-                return EH
+
+        if self.equipoEnCoordenadas(xObjetivo + dirX, yObjetivo + dirY):
+            return EH
+        coorDespuesDeComer = (xObjetivo + dirX, yObjetivo + dirY)
+
+        self.ponFicha(ficha, equipo, coorDespuesDeComer[0], coorDespuesDeComer[1])
+        movsPosiblesDespuesDeComer = self._movimientosFicha(equipo, coorDespuesDeComer[0], coorDespuesDeComer[1])
+        self.quitaFicha(coorDespuesDeComer[0], coorDespuesDeComer[1])
+
+        movimientosRecursivos = Movimientos(coordenada=coorDespuesDeComer, movs=[])
+        if movsPosiblesDespuesDeComer:
+            for xMov, yMov in movsPosiblesDespuesDeComer.movs:
+                equipoDeFichaObjetivo = self.equipoEnCoordenadas(xMov, yMov)
+                if not equipoDeFichaObjetivo:
+                    continue
+                if equipoDeFichaObjetivo is equipo:
+                    continue
+
+                movimientosRecursivos.movs.append(self._fichaComeA(ficha, equipo, coorDespuesDeComer[0], coorDespuesDeComer[1], xMov, yMov))
+
+        resultado = []
+        resultado.append( [coorDespuesDeComer] )
+        for mov in movimientosRecursivos.movs:
+            resultado[-1].append(movimientosRecursivos.movs)
+            resultado.append( [coorDespuesDeComer] )
+        return resultado
+
 
 
     def movimientosEquipo(self, equipo):
@@ -241,6 +289,7 @@ class PruebasTablero(unittest.TestCase):
         t.fichasDelEquipo[ t.EQUIPOS[1] ][ (3, 3) ] = t.PEON
         t.fichasDelEquipo[ t.EQUIPOS[1] ][ (5, 5) ] = t.PEON
         movimientos = t.movimientosEnCoordenadas(0, 0)
+        print(t)
         print(movimientos)
         self.assertTrue(movimientos)
         self.assertTrue(movimientos.movs)
@@ -250,7 +299,4 @@ class PruebasTablero(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    t = Tablero()
-    t.ponFichasIniciales()
-
     unittest.main()
