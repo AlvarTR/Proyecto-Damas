@@ -1,0 +1,38 @@
+---DISEÑO JUEGO DE DAMAS---
+
+PRINCIPALES CARACTERÍSTICAS
+- Poco espacio de cómputo
+    IA más profunda
+- Funcional
+    Las fichas del tablero se mueven "sin estados"
+    Mejor para IA
+
+COMPONENTES
+- Tablero
+    Guarda:
+        Tamaño del cuadrado
+        Posición actual de las fichas
+    Calcula:
+        Como imprimir el tablero
+
+- Reglas
+    Guarda:
+        Nada
+    Calcula:
+        Si las fichas están bien puestas
+        Los movimientos de una ficha
+            Basándose en un tablero concreto
+
+- Fichas
+    Guarda:
+        Tipos y características de fichas
+    Calcula:
+        Nada
+
+- Turnos
+    Guarda:
+        Las fichas comidas por cada jugador
+        A quién le toca mover
+    Calcula:
+        A quién le toca mover próximamente
+        Bloquear los movimientos del otro jugador
