@@ -12,6 +12,17 @@ class Tablero():
         self.filaObjetivoDelEquipo = {self.EQUIPOS[0]:0, self.EQUIPOS[1]:self.LONG_TABLERO - 1}
         self.fichasDelEquipo = {e:{} for e in self.EQUIPOS}
 
+    def posicionValida(self, x, y):
+        EH = False
+        if x < 0 or x >= self.LONG_TABLERO:
+            return EH
+        if y < 0 or y >= self.LONG_TABLERO:
+            return EH
+        if (x + y) % 2 != 0:
+            return EH
+
+        return True
+
     def equipoEnCoordenadas(self, x, y):
         EH = None
         for e, fichasEquipo in self.fichasDelEquipo.items():
@@ -24,6 +35,95 @@ class Tablero():
         if equipo not in self.EQUIPOS:
             return EH
         return len(self.fichasDelEquipo[equipo])
+
+
+    def rangoFichaEnTablero(self, x, y):
+        EH = []
+        if not self.posicionValida(x, y):
+            return EH
+
+        equipo = self.equipoEnCoordenadas(x, y)
+        if not equipo:
+            return EH
+
+        ficha = self.fichasDelEquipo[equipo][ (x, y) ]
+
+        dirFicha = -1 if self.filaObjetivoDelEquipo[equipo] - y < 0 else 1
+
+        rangoPosible = []
+        direccionesConFichaBloqueando = set()
+        i = 1
+        while i <= ficha.movMax:
+            opcionesY = (y + dirFicha*i, )
+
+            if ficha.puedeIrAtras:
+                opcionesY = (y - i, y + i)
+
+            for posibleY in opcionesY:
+                dirPosibleY = -1 if posibleY - y < 0 else 1
+
+                for posibleX in (x - i, x + i):
+                    if not self.posicionValida(posibleX, posibleY):
+                        continue
+
+                    dirPosibleX = -1 if posibleX - x < 0 else 1
+                    if (dirPosibleX, dirPosibleY) in direccionesConFichaBloqueando:
+                        continue
+
+                    if self.equipoEnCoordenadas(posibleX, posibleY):
+                        direccionesConFichaBloqueando.add( (dirPosibleX, dirPosibleY) )
+
+                    rangoPosible.append( (posibleX, posibleY) )
+            i += 1
+
+        return rangoPosible
+
+    def desplazamientoFichaEnTablero(self, x, y):
+        EH = []
+        rangoMov = self.rangoFichaEnTablero(x, y)
+        if not rangoMov:
+            return EH
+
+        desplazamiento = []
+        for xObjetivo, yObjetivo in rangoMov:
+            if self.equipoEnCoordenadas(xObjetivo, yObjetivo):
+                continue
+            desplazamiento.append( (xObjetivo, yObjetivo) )
+
+        return desplazamiento
+
+    def fichasQuePuedeComerFichaEnTablero(self, x, y):
+        EH = []
+        rangoMov = self.rangoFichaEnTablero(x, y)
+        if not rangoMov:
+            return EH
+
+        equipo = self.equipoEnCoordenadas(x, y)
+
+        fichasQuePuedeComer = []
+        for xObjetivo, yObjetivo in rangoMov:
+            equipoObjetivo = self.equipoEnCoordenadas(xObjetivo, yObjetivo)
+            if not equipo:
+                continue
+            if equipo == equipoObjetivo:
+                continue
+
+            dirX = -1 if xObjetivo - x < 0 else 1
+            dirY = -1 if yObjetivo - y < 0 else 1
+            xSiguiente = xObjetivo + dirX
+            ySiguiente = yObjetivo + dirY
+            if not self.posicionValida(xSiguiente, ySiguiente):
+                continue
+            if self.equipoEnCoordenadas(xObjetivo + dirX, yObjetivo + dirY):
+                continue
+
+            fichasQuePuedeComer.append( (xObjetivo, yObjetivo) )
+
+        return fichasQuePuedeComer
+
+    def movimientosFichaEnTablero(self, x, y):
+        pass
+
 
     def __str__(self):
         string = "\n"
@@ -61,6 +161,36 @@ class Tablero():
     def copia(self):
         return self.__copy__()
 
+class PruebasMovimiento(unittest.TestCase):
+    def setUp(self):
+        self.t = Tablero()
+
+    def testRangoMovDamaSola(self):
+        coordenadasConRespuestas = {
+        (0, 0): 7,
+        (1, 1): 1+1+1+6,
+        (3, 3):3+3+3+4
+        }
+        for x, y in coordenadasConRespuestas:
+            self.t.fichasDelEquipo["Blanco"][(x, y)] = self.t.DAMA
+            rangoDama = self.t.rangoFichaEnTablero(x, y)
+            self.assertEqual(len(rangoDama), coordenadasConRespuestas[ (x, y) ])
+
+            self.t.fichasDelEquipo["Blanco"].pop( (x, y) )
+
+    def testRangoMovDamaConFichas(self):
+        e1 = self.t.EQUIPOS[0]
+        e2 = self.t.EQUIPOS[1]
+        self.t.fichasDelEquipo[e1][(3, 3)] = self.t.DAMA
+        self.t.fichasDelEquipo[e1][(1, 1)] = self.t.PEON
+
+        self.t.fichasDelEquipo[e2][(6, 6)] = self.t.PEON
+        self.t.fichasDelEquipo[e2][(5, 1)] = self.t.DAMA
+        self.t.fichasDelEquipo[e2][(1, 5)] = self.t.PEON
+
+        rangoDama = self.t.rangoFichaEnTablero(3, 3)
+        self.assertEqual(len(rangoDama), 2+2+2+3)
+
 class PruebasTablero(unittest.TestCase):
     def setUp(self):
         self.t = Tablero()
@@ -77,7 +207,5 @@ class PruebasTablero(unittest.TestCase):
 
         for e in copia.fichasDelEquipo:
             self.assertEqual(len(copia.fichasDelEquipo[e]), 1)
-
-
 if __name__ == "__main__":
     unittest.main()

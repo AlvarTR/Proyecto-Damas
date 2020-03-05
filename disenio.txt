@@ -10,31 +10,31 @@ PRINCIPALES CARACTERÍSTICAS
 COMPONENTES
 - Tablero
     Guarda:
-        Tamaño del cuadrado
-        Posición actual de las fichas
+      Tamaño del cuadrado
+      Posición actual de las fichas
     Calcula:
-        Como imprimir el tablero
-        Contar fichas en el tablero
-        Copiar el tablero
+      Si las fichas están bien puestas
+      Como imprimir el tablero
+      Contar fichas en el tablero
+      Copiar el tablero
+      El rango de movimiento de sus fichas
 
 - Reglas
     Guarda:
-        Nada
+      Nada
     Calcula:
-        Si las fichas están bien puestas
-        Los movimientos de una ficha
-            Basándose en un tablero concreto
+      Nada?
 
 - Fichas
     Guarda:
-        Tipos y características de fichas
+      Tipos y características de fichas
     Calcula:
-        Nada
+      Nada
 
 - Turnos
     Guarda:
-        Las fichas comidas por cada jugador
-        A quién le toca mover
+      Las fichas comidas por cada jugador
+      A quién le toca mover
     Calcula:
-        A quién le toca mover próximamente
-        Bloquear los movimientos del otro jugador
+      A quién le toca mover próximamente
+      Bloquear los movimientos del otro jugador
