@@ -92,7 +92,7 @@ class Tablero():
 
         return desplazamiento
 
-    def fichasQuePuedeComerFichaEnTablero(self, x, y):
+    def opcionesComidaFichaEnTablero(self, x, y):
         EH = []
         rangoMov = self.rangoFichaEnTablero(x, y)
         if not rangoMov:
@@ -120,6 +120,36 @@ class Tablero():
             fichasQuePuedeComer.append( (xObjetivo, yObjetivo) )
 
         return fichasQuePuedeComer
+
+    def tableroDondeFichaComeAFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
+        EH = None
+        equipo = self.equipoEnCoordenadas(xFicha, yFicha)
+        if not equipo:
+            return EH
+
+        equipoObjetivo = self.equipoEnCoordenadas(xObjetivo, yObjetivo)
+        if not equipoObjetivo:
+            return EH
+
+        fichasComibles = self.opcionesComidaFichaEnTablero(xFicha, yFicha)
+        if not fichasComibles:
+            return EH
+        if not (xObjetivo, yObjetivo) in fichasComibles:
+            return EH
+
+        dirX = -1 if xObjetivo - x < 0 else 1
+        dirY = -1 if yObjetivo - y < 0 else 1
+
+        xFichaComiendo = xObjetivo + dirX
+        yFichaComiendo = yObjetivo + dirY
+
+        ficha = self.fichasDelEquipo[equipo][ (xFicha, yFicha) ]
+
+        simulacion = self.copia()
+        simulacion.fichasDelEquipo[equipoObjetivo].pop( (xObjetivo, yObjetivo) )
+        simulacion.fichasDelEquipo[equipo][ (xFichaComiendo, yFichaComiendo) ] = ficha
+
+        return simulacion
 
     def movimientosFichaEnTablero(self, x, y):
         pass
@@ -207,5 +237,6 @@ class PruebasTablero(unittest.TestCase):
 
         for e in copia.fichasDelEquipo:
             self.assertEqual(len(copia.fichasDelEquipo[e]), 1)
+
 if __name__ == "__main__":
     unittest.main()
