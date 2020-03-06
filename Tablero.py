@@ -164,15 +164,18 @@ class Tablero():
                 continue
 
             saltosEnSimulacion = t.movimientosComerFicha( xTrasComer, yTrasComer )
+            #print("Lista saltos:", saltosEnSimulacion)
 
-            listaEditada = [ (xTrasComer, yTrasComer) ]
+            if not saltosEnSimulacion:
+                saltosTrasComer.append( [ (xTrasComer, yTrasComer) ] )
+
             for lista in saltosEnSimulacion:
-                print("Lista:", lista)
+                listaEditada = [ (xTrasComer, yTrasComer) ]
+                #print("Lista:", lista)
                 for salto in lista:
-                    print("Salto:", salto)
+                    #print("Salto:", salto)
                     listaEditada.append(salto)
-
-            saltosTrasComer.append(listaEditada)
+                saltosTrasComer.append(listaEditada)
 
         return saltosTrasComer
 
@@ -237,7 +240,7 @@ class PruebasMovimiento(unittest.TestCase):
         for x, y in coordenadasConRespuestas:
             self.t.fichasDelEquipo["Blanco"][(x, y)] = self.t.DAMA
             rangoDama = self.t.rangoFicha(x, y)
-            #print(self.t)
+
             self.assertEqual(len(rangoDama), coordenadasConRespuestas[ (x, y) ])
 
             self.t.fichasDelEquipo["Blanco"].pop( (x, y) )
@@ -311,8 +314,28 @@ class PruebasComer(unittest.TestCase):
             self.t.fichasDelEquipo["Blanco"][ (i, i) ] = self.t.PEON
 
         comerEnCadena = self.t.movimientosComerFicha(0, 0)
-        print(comerEnCadena)
         self.assertEqual(len(comerEnCadena), 1)
+
+    def testComerConBifurcacion(self):
+        self.t.fichasDelEquipo["Negro"][ (0, 0) ] = self.t.PEON
+        for i in range(1, self.t.LONG_TABLERO, 2):
+            self.t.fichasDelEquipo["Blanco"][ (i, i) ] = self.t.PEON
+        self.t.fichasDelEquipo["Blanco"][ (1, 3) ] = self.t.PEON
+
+        comerEnCadena = self.t.movimientosComerFicha(0, 0)
+        self.assertEqual(len(comerEnCadena), 2)
+
+    def testComerConBifurcacionesConvergentes(self):
+        self.t.fichasDelEquipo["Negro"][ (2, 0) ] = self.t.PEON
+        for i in range(1, self.t.LONG_TABLERO, 2):
+            for j in range(1, self.t.LONG_TABLERO, 2):
+                self.t.fichasDelEquipo["Blanco"][ (i, j) ] = self.t.PEON
+        print(self.t)
+        comerEnCadena = self.t.movimientosComerFicha(2, 0)
+
+        self.assertEqual(len(comerEnCadena), 5)
+        for salto in comerEnCadena:
+            self.assertEqual(len(salto), 3)
 
 if __name__ == "__main__":
     unittest.main()
