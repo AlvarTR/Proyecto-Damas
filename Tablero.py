@@ -180,12 +180,15 @@ class Tablero():
         return saltosTrasComer
 
     def movimientosFicha(self, x, y):
-        EH = []
+        movimientos = []
 
-        desplazamiento = self.desplazamientoFicha(x, y)
+        for coor in self.desplazamientoFicha(x, y):
+            movimientos.append(coor)
 
-        opcionesComer = self.opcionesComerFicha(x, y)
-        pass
+        for saltos in self.movimientosComerFicha(x, y):
+            movimientos.append(saltos)
+
+        return movimientos
 
 
     def __str__(self):
@@ -336,6 +339,21 @@ class PruebasComer(unittest.TestCase):
         self.assertEqual(len(comerEnCadena), 5)
         for salto in comerEnCadena:
             self.assertEqual(len(salto), 3)
+
+    def testMovimientosDamaConFichas(self):
+        e1 = self.t.EQUIPOS[0]
+        e2 = self.t.EQUIPOS[1]
+        self.t.fichasDelEquipo[e1][(3, 3)] = self.t.DAMA
+        self.t.fichasDelEquipo[e1][(1, 1)] = self.t.PEON
+
+        self.t.fichasDelEquipo[e2][(6, 6)] = self.t.PEON
+        self.t.fichasDelEquipo[e2][(5, 1)] = self.t.DAMA
+        self.t.fichasDelEquipo[e2][(1, 5)] = self.t.PEON
+
+        movsDama = self.t.movimientosFicha(3, 3)
+
+        self.assertEqual(len(movsDama), 8)
+
 
 if __name__ == "__main__":
     unittest.main()
