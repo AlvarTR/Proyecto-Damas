@@ -92,15 +92,15 @@ class Tablero():
 
         return desplazamiento
 
-    def opcionesComidaFichaEnTablero(self, x, y):
-        EH = []
+    def opcionesComerFichaEnTablero(self, x, y):
+        EH = {}
         rangoMov = self.rangoFichaEnTablero(x, y)
         if not rangoMov:
             return EH
 
         equipo = self.equipoEnCoordenadas(x, y)
 
-        fichasQuePuedeComer = []
+        fichasQuePuedeComerYMovResultante = {}
         for xObjetivo, yObjetivo in rangoMov:
             equipoObjetivo = self.equipoEnCoordenadas(xObjetivo, yObjetivo)
             if not equipo:
@@ -117,11 +117,11 @@ class Tablero():
             if self.equipoEnCoordenadas(xObjetivo + dirX, yObjetivo + dirY):
                 continue
 
-            fichasQuePuedeComer.append( (xObjetivo, yObjetivo) )
+            fichasQuePuedeComerYMovResultante[ (xObjetivo, yObjetivo) ] = (xSiguiente, ySiguiente)
 
-        return fichasQuePuedeComer
+        return fichasQuePuedeComerYMovResultante
 
-    def tableroDondeFichaComeAFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
+    def tableroEnElQueFichaComeAFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
         EH = None
         equipo = self.equipoEnCoordenadas(xFicha, yFicha)
         if not equipo:
@@ -131,27 +131,32 @@ class Tablero():
         if not equipoObjetivo:
             return EH
 
-        fichasComibles = self.opcionesComidaFichaEnTablero(xFicha, yFicha)
+        fichasComibles = self.opcionesComerFichaEnTablero(xFicha, yFicha)
         if not fichasComibles:
             return EH
         if not (xObjetivo, yObjetivo) in fichasComibles:
             return EH
 
-        dirX = -1 if xObjetivo - x < 0 else 1
-        dirY = -1 if yObjetivo - y < 0 else 1
-
-        xFichaComiendo = xObjetivo + dirX
-        yFichaComiendo = yObjetivo + dirY
-
-        ficha = self.fichasDelEquipo[equipo][ (xFicha, yFicha) ]
-
         simulacion = self.copia()
-        simulacion.fichasDelEquipo[equipoObjetivo].pop( (xObjetivo, yObjetivo) )
+
+        ficha = simulacion.fichasDelEquipo[equipo].pop( (xFicha, yFicha) )
+
+        xFichaComiendo, yFichaComiendo = fichasComibles[ (xObjetivo, yObjetivo) ]
         simulacion.fichasDelEquipo[equipo][ (xFichaComiendo, yFichaComiendo) ] = ficha
+
+        simulacion.fichasDelEquipo[equipoObjetivo].pop( (xObjetivo, yObjetivo) )
 
         return simulacion
 
+    def comerEnCadenaFichaEnTablero(self, x, y):
+        pass
+        
     def movimientosFichaEnTablero(self, x, y):
+        EH = []
+
+        desplazamiento = self.desplazamientoFichaEnTablero(x, y)
+
+        opcionesComer = self.opcionesComerFichaEnTablero(x, y)
         pass
 
 
@@ -181,11 +186,14 @@ class Tablero():
 
     def __copy__(self):
         t = Tablero(self.LONG_TABLERO, self.EQUIPOS)
-        t.PEON = self.PEON
-        t.DAMA = self.DAMA
 
-        t.filaObjetivoDelEquipo = self.filaObjetivoDelEquipo.copy()
-        t.fichasDelEquipo = self.fichasDelEquipo.copy()
+        for e in self.EQUIPOS:
+            for coordenada in self.fichasDelEquipo[e]:
+                ficha = self.fichasDelEquipo[e][ coordenada ]
+                if ficha.tipoFicha == self.PEON.tipoFicha:
+                    t.fichasDelEquipo[e][ coordenada ] = t.PEON
+                elif ficha.tipoFicha == self.DAMA.tipoFicha:
+                    t.fichasDelEquipo[e][ coordenada ] = t.DAMA
         return t
 
     def copia(self):
@@ -237,6 +245,39 @@ class PruebasTablero(unittest.TestCase):
 
         for e in copia.fichasDelEquipo:
             self.assertEqual(len(copia.fichasDelEquipo[e]), 1)
+
+class PruebasComer(unittest.TestCase):
+    def setUp(self):
+        self.t = Tablero()
+
+    def testPeonNoPuedeComerPeon(self):
+        coorN = (3, 3)
+        self.t.fichasDelEquipo["Negro"][ coorN ] = self.t.PEON
+        coorB = (4, 4)
+        self.t.fichasDelEquipo["Blanco"][ coorB ] = self.t.PEON
+        self.t.fichasDelEquipo["Blanco"][ (5, 5) ] = self.t.PEON
+
+        self.assertEqual(len(self.t.fichasDelEquipo["Negro"]), 1)
+        self.assertEqual(len(self.t.fichasDelEquipo["Blanco"]), 2)
+
+        simulacion = self.t.tableroEnElQueFichaComeAFicha( coorN[0], coorN[1], coorB[0], coorB[1] )
+        self.assertIsNone(simulacion)
+
+    def testPeonComePeon(self):
+        coorN = (3, 3)
+        self.t.fichasDelEquipo["Negro"][ coorN ] = self.t.PEON
+        coorB = (4, 4)
+        self.t.fichasDelEquipo["Blanco"][ coorB ] = self.t.PEON
+
+        self.assertEqual(len(self.t.fichasDelEquipo["Negro"]), 1)
+        self.assertEqual(len(self.t.fichasDelEquipo["Blanco"]), 1)
+
+        simulacion = self.t.tableroEnElQueFichaComeAFicha( coorN[0], coorN[1], coorB[0], coorB[1] )
+        self.assertEqual(len(self.t.fichasDelEquipo["Negro"]), 1)
+        self.assertEqual(len(self.t.fichasDelEquipo["Blanco"]), 1)
+
+        self.assertEqual(len(simulacion.fichasDelEquipo["Negro"]), 1)
+        self.assertEqual(len(simulacion.fichasDelEquipo["Blanco"]), 0)
 
 if __name__ == "__main__":
     unittest.main()

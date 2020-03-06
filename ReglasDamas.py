@@ -18,7 +18,7 @@ def tableroConFichasIniciales(longTablero=8, relacionCasillasFichas=0.4, equipos
             final = primeraFila + filasPeones-1 #-1 para hacer 0 -> self.FILAS_PEONES-1 (2) en el bucle
 
         for y in range(inicial, final+1): #+1 porque "final" es el ultimo valor que queremos rellenar
-            for x in iter(x for x in range(t.LONG_TABLERO) if posicionValida(x, y, t.LONG_TABLERO)):
+            for x in iter(x for x in range(t.LONG_TABLERO) if t.posicionValida(x, y)):
                 t.fichasDelEquipo[e][(x, y)] = t.PEON
     return t
 
@@ -27,6 +27,7 @@ class PruebasFichasIniciales(unittest.TestCase):
         self.t = tableroConFichasIniciales()
 
     def testFichasInicialesBienPuestas(self):
+        print(self.t)
         for e in self.t.fichasDelEquipo:
             self.assertEqual(len(self.t.fichasDelEquipo[e]), 12)
 
