@@ -227,8 +227,8 @@ class PruebasMovimiento(unittest.TestCase):
         }
         for x, y in coordenadasConRespuestas:
             self.t.fichasDelEquipo[self.blanco][(x, y)] = self.t.DAMA
-            rangoDama = self.t.rangoFicha(x, y)
-            self.assertEqual(len( tuple(rangoDama) ), coordenadasConRespuestas[ (x, y) ], "Fallo en coordenadas " + str(x) + ", " + str(y))
+            rangoDama = tuple(self.t.rangoFicha(x, y))
+            self.assertEqual(len( rangoDama ), coordenadasConRespuestas[ (x, y) ], "Fallo en coordenadas " + str(x) + ", " + str(y))
 
             self.t.fichasDelEquipo[self.blanco].pop( (x, y) )
 
@@ -240,8 +240,8 @@ class PruebasMovimiento(unittest.TestCase):
         self.t.fichasDelEquipo[self.negro][(5, 1)] = self.t.DAMA
         self.t.fichasDelEquipo[self.negro][(1, 5)] = self.t.PEON
 
-        rangoDama = self.t.rangoFicha(3, 3)
-        self.assertEqual(len( tuple(rangoDama) ), 2+2+2+3)
+        rangoDama = tuple(self.t.rangoFicha(3, 3))
+        self.assertEqual(len( rangoDama ), 2+2+2+3)
 
 class PruebasTablero(unittest.TestCase):
     def setUp(self):
@@ -300,8 +300,8 @@ class PruebasComer(unittest.TestCase):
         for i in range(1, self.t.LONG_TABLERO, 2):
             self.t.fichasDelEquipo[self.blanco][ (i, i) ] = self.t.PEON
 
-        comerEnCadena = self.t.movimientosComerFicha(0, 0)
-        self.assertEqual(len( tuple(comerEnCadena) ), 1)
+        comerEnCadena = tuple(self.t.movimientosComerFicha(0, 0))
+        self.assertEqual(len( comerEnCadena ), 1)
 
     def testComerConBifurcacion(self):
         self.t.fichasDelEquipo[self.negro][ (0, 0) ] = self.t.PEON
@@ -309,8 +309,8 @@ class PruebasComer(unittest.TestCase):
             self.t.fichasDelEquipo[self.blanco][ (i, i) ] = self.t.PEON
         self.t.fichasDelEquipo[self.blanco][ (1, 3) ] = self.t.PEON
 
-        comerEnCadena = self.t.movimientosComerFicha(0, 0)
-        self.assertEqual(len( tuple(comerEnCadena) ), 2)
+        comerEnCadena = tuple(self.t.movimientosComerFicha(0, 0))
+        self.assertEqual(len( comerEnCadena ), 2)
 
     def testComerConBifurcacionesConvergentes(self):
         x, y = (2, 0)
@@ -318,8 +318,10 @@ class PruebasComer(unittest.TestCase):
         for i in range(1, self.t.LONG_TABLERO, 2):
             for j in range(1, self.t.LONG_TABLERO, 2):
                 self.t.fichasDelEquipo[self.blanco][ (i, j) ] = self.t.PEON
-        self.assertEqual(len( tuple(self.t.movimientosComerFicha(x, y)) ), 5)
-        for salto in self.t.movimientosComerFicha(x, y):
+
+        comerEnCadena = tuple(self.t.movimientosComerFicha(x, y))
+        self.assertEqual(len( comerEnCadena ), 5)
+        for salto in comerEnCadena:
             self.assertEqual(len(salto), 3)
 
     def testMovimientosDamaConFichas(self):
@@ -330,7 +332,8 @@ class PruebasComer(unittest.TestCase):
         self.t.fichasDelEquipo[self.negro][(5, 1)] = self.t.DAMA
         self.t.fichasDelEquipo[self.negro][(1, 5)] = self.t.PEON
 
-        self.assertEqual(len( tuple(self.t.movimientosFicha(3, 3)) ), 8)
+        movDama = tuple(self.t.movimientosFicha(3, 3))
+        self.assertEqual(len( movDama ), 8)
 
 
 if __name__ == "__main__":
