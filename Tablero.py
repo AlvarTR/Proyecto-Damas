@@ -57,7 +57,6 @@ class Tablero():
 
         dirFicha = -1 if self.filaObjetivoDelEquipo[equipo] - y < 0 else 1
 
-        #rangoPosible = []
         direccionesConFichaBloqueando = set()
         i = 0
         while i < ficha.movMax:
@@ -85,20 +84,13 @@ class Tablero():
                     if self.equipoEnCoordenadas(posibleX, posibleY):
                         direccionesConFichaBloqueando.add( (dirPosibleX, dirPosibleY) )
 
-                    #rangoPosible.append( (posibleX, posibleY) )
                     yield (posibleX, posibleY)
-        #return rangoPosible
 
     def desplazamientoFicha(self, x, y):
-        #desplazamiento = []
-
         for xObjetivo, yObjetivo in self.rangoFicha(x, y):
             if self.equipoEnCoordenadas(xObjetivo, yObjetivo):
                 continue
-            #desplazamiento.append( (xObjetivo, yObjetivo) )
             yield (xObjetivo, yObjetivo)
-
-        #return desplazamiento
 
     def opcionesComerFicha(self, x, y):
         EH = {}
@@ -155,47 +147,27 @@ class Tablero():
         return simulacion
 
     def movimientosComerFicha(self, x, y):
-        #Al yield no le gusta la recursividad
-        saltosTrasComer = []
+        saltosTrasComer = ()
 
-        opcionesComer = self.opcionesComerFicha(x, y)
-        for xObjetivo, yObjetivo in opcionesComer:
-            xTrasComer, yTrasComer = opcionesComer[ (xObjetivo, yObjetivo) ]
-
+        for (xObjetivo, yObjetivo), (xTrasComer, yTrasComer) in self.opcionesComerFicha(x, y).items():
             t = self.tableroEnElQueFichaComeAFicha(x, y, xObjetivo, yObjetivo)
             if not t:
                 continue
 
-            saltosEnSimulacion = t.movimientosComerFicha( xTrasComer, yTrasComer )
-            #print("Lista saltos:", tuple(saltosEnSimulacion))
+            contadorSecuencias = 0
+            for secuencia in t.movimientosComerFicha( xTrasComer, yTrasComer ):
+                listaEditada = ( (xTrasComer, yTrasComer), )
+                for salto in secuencia:
+                    listaEditada += (salto, )
+                yield listaEditada
+                contadorSecuencias += 1
 
-            if not saltosEnSimulacion:
-                saltosTrasComer.append( [ (xTrasComer, yTrasComer) ] )
-
-            for lista in saltosEnSimulacion:
-                listaEditada = [ (xTrasComer, yTrasComer) ]
-                #print("Lista:", tuple(lista))
-                for salto in lista:
-                    #print("Salto:", tuple(salto))
-                    listaEditada.append(salto)
-                saltosTrasComer.append(listaEditada)
-                #print("Lista editada:", listaEditada)
-
-        return saltosTrasComer
+            if contadorSecuencias == 0:
+                yield ( (xTrasComer, yTrasComer), )
 
     def movimientosFicha(self, x, y):
-        #movimientos = []
-
-        for coor in self.desplazamientoFicha(x, y):
-            #movimientos.append(coor)
-            yield coor
-
-        for saltos in self.movimientosComerFicha(x, y):
-            #movimientos.append(saltos)
-            yield saltos
-
-        #return movimientos
-
+        yield from self.movimientosComerFicha(x, y)
+        yield from self.desplazamientoFicha(x, y)
 
     def __str__(self):
         string = "\n"
@@ -323,7 +295,6 @@ class PruebasComer(unittest.TestCase):
             self.t.fichasDelEquipo["Blanco"][ (i, i) ] = self.t.PEON
 
         comerEnCadena = self.t.movimientosComerFicha(0, 0)
-        #print(tuple(comerEnCadena))
         self.assertEqual(len( tuple(comerEnCadena) ), 1)
 
     def testComerConBifurcacion(self):
@@ -340,9 +311,8 @@ class PruebasComer(unittest.TestCase):
         for i in range(1, self.t.LONG_TABLERO, 2):
             for j in range(1, self.t.LONG_TABLERO, 2):
                 self.t.fichasDelEquipo["Blanco"][ (i, j) ] = self.t.PEON
-        #print(self.t)
+        print(tuple(self.t.movimientosComerFicha(2, 0)))
         self.assertEqual(len( tuple(self.t.movimientosComerFicha(2, 0)) ), 5)
-
         for salto in self.t.movimientosComerFicha(2, 0):
             self.assertEqual(len(salto), 3)
 
