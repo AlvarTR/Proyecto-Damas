@@ -26,15 +26,16 @@ class Tablero():
     def equipoEnCoordenadas(self, x, y):
         EH = None
 
+        if not self.posicionValida(x, y):
+            return EH
+
         equipoEncontrado = None
-        contadorEquiposEncontrados = 0
         for e, fichasEquipo in self.fichasDelEquipo.items():
             if (x, y) in fichasEquipo:
+                if equipoEncontrado is not None:
+                    return EH
                 equipoEncontrado = e
-                contadorEquiposEncontrados += 1
 
-        if contadorEquiposEncontrados > 1:
-            return EH
 
         return equipoEncontrado
 
@@ -54,7 +55,6 @@ class Tablero():
             return EH
 
         ficha = self.fichasDelEquipo[equipo][ (x, y) ]
-
         dirFicha = -1 if self.filaObjetivoDelEquipo[equipo] - y < 0 else 1
 
         direccionesConFichaBloqueando = set()
@@ -63,7 +63,6 @@ class Tablero():
             i += 1
 
             opcionesY = (y + dirFicha*i, )
-
             if ficha.puedeIrAtras:
                 opcionesY = (y - i, y + i)
 
@@ -72,7 +71,6 @@ class Tablero():
                     continue
 
                 dirPosibleY = -1 if posibleY - y < 0 else 1
-
                 for posibleX in (x - i, x + i):
                     if not self.posicionValida(posibleX, posibleY):
                         continue
@@ -169,6 +167,7 @@ class Tablero():
         yield from self.movimientosComerFicha(x, y)
         yield from self.desplazamientoFicha(x, y)
 
+
     def __str__(self):
         string = "\n"
 
@@ -211,30 +210,35 @@ class Tablero():
 class PruebasMovimiento(unittest.TestCase):
     def setUp(self):
         self.t = Tablero()
+        self.blanco = self.t.EQUIPOS[0]
+        self.negro = self.t.EQUIPOS[1]
 
     def testRangoMovDamaSola(self):
         coordenadasConRespuestas = {
         (0, 0): 7,
         (1, 1): 1+1+1+6,
-        (3, 3):3+3+3+4
+        (2, 2): 2+2+2+5,
+        (3, 3): 3+3+3+4,
+        (8, 0): 0,
+        (0, 8): 0,
+        (-1, 0): 0,
+        (0, -1): 0,
+        (2, 3): 0
         }
         for x, y in coordenadasConRespuestas:
-            self.t.fichasDelEquipo["Blanco"][(x, y)] = self.t.DAMA
+            self.t.fichasDelEquipo[self.blanco][(x, y)] = self.t.DAMA
             rangoDama = self.t.rangoFicha(x, y)
+            self.assertEqual(len( tuple(rangoDama) ), coordenadasConRespuestas[ (x, y) ], "Fallo en coordenadas " + str(x) + ", " + str(y))
 
-            self.assertEqual(len( tuple(rangoDama) ), coordenadasConRespuestas[ (x, y) ])
-
-            self.t.fichasDelEquipo["Blanco"].pop( (x, y) )
+            self.t.fichasDelEquipo[self.blanco].pop( (x, y) )
 
     def testRangoMovDamaConFichas(self):
-        e1 = self.t.EQUIPOS[0]
-        e2 = self.t.EQUIPOS[1]
-        self.t.fichasDelEquipo[e1][(3, 3)] = self.t.DAMA
-        self.t.fichasDelEquipo[e1][(1, 1)] = self.t.PEON
+        self.t.fichasDelEquipo[self.blanco][(3, 3)] = self.t.DAMA
+        self.t.fichasDelEquipo[self.blanco][(1, 1)] = self.t.PEON
 
-        self.t.fichasDelEquipo[e2][(6, 6)] = self.t.PEON
-        self.t.fichasDelEquipo[e2][(5, 1)] = self.t.DAMA
-        self.t.fichasDelEquipo[e2][(1, 5)] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][(6, 6)] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][(5, 1)] = self.t.DAMA
+        self.t.fichasDelEquipo[self.negro][(1, 5)] = self.t.PEON
 
         rangoDama = self.t.rangoFicha(3, 3)
         self.assertEqual(len( tuple(rangoDama) ), 2+2+2+3)
@@ -259,72 +263,72 @@ class PruebasTablero(unittest.TestCase):
 class PruebasComer(unittest.TestCase):
     def setUp(self):
         self.t = Tablero()
+        self.blanco = self.t.EQUIPOS[0]
+        self.negro = self.t.EQUIPOS[1]
 
     def testPeonNoPuedeComerPeon(self):
         coorN = (3, 3)
-        self.t.fichasDelEquipo["Negro"][ coorN ] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][ coorN ] = self.t.PEON
         coorB = (4, 4)
-        self.t.fichasDelEquipo["Blanco"][ coorB ] = self.t.PEON
-        self.t.fichasDelEquipo["Blanco"][ (5, 5) ] = self.t.PEON
+        self.t.fichasDelEquipo[self.blanco][ coorB ] = self.t.PEON
+        self.t.fichasDelEquipo[self.blanco][ (5, 5) ] = self.t.PEON
 
-        self.assertEqual(len(self.t.fichasDelEquipo["Negro"]), 1)
-        self.assertEqual(len(self.t.fichasDelEquipo["Blanco"]), 2)
+        self.assertEqual(len(self.t.fichasDelEquipo[self.negro]), 1)
+        self.assertEqual(len(self.t.fichasDelEquipo[self.blanco]), 2)
 
         simulacion = self.t.tableroEnElQueFichaComeAFicha( coorN[0], coorN[1], coorB[0], coorB[1] )
         self.assertIsNone(simulacion)
 
     def testPeonComePeon(self):
         coorN = (3, 3)
-        self.t.fichasDelEquipo["Negro"][ coorN ] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][ coorN ] = self.t.PEON
         coorB = (4, 4)
-        self.t.fichasDelEquipo["Blanco"][ coorB ] = self.t.PEON
+        self.t.fichasDelEquipo[self.blanco][ coorB ] = self.t.PEON
 
-        self.assertEqual(len(self.t.fichasDelEquipo["Negro"]), 1)
-        self.assertEqual(len(self.t.fichasDelEquipo["Blanco"]), 1)
+        self.assertEqual(len(self.t.fichasDelEquipo[self.negro]), 1)
+        self.assertEqual(len(self.t.fichasDelEquipo[self.blanco]), 1)
 
         simulacion = self.t.tableroEnElQueFichaComeAFicha( coorN[0], coorN[1], coorB[0], coorB[1] )
-        self.assertEqual(len(self.t.fichasDelEquipo["Negro"]), 1)
-        self.assertEqual(len(self.t.fichasDelEquipo["Blanco"]), 1)
+        self.assertEqual(len(self.t.fichasDelEquipo[self.negro]), 1)
+        self.assertEqual(len(self.t.fichasDelEquipo[self.blanco]), 1)
 
-        self.assertEqual(len(simulacion.fichasDelEquipo["Negro"]), 1)
-        self.assertEqual(len(simulacion.fichasDelEquipo["Blanco"]), 0)
+        self.assertEqual(len(simulacion.fichasDelEquipo[self.negro]), 1)
+        self.assertEqual(len(simulacion.fichasDelEquipo[self.blanco]), 0)
 
     def testComerEnDiagonal(self):
-        self.t.fichasDelEquipo["Negro"][ (0, 0) ] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][ (0, 0) ] = self.t.PEON
         for i in range(1, self.t.LONG_TABLERO, 2):
-            self.t.fichasDelEquipo["Blanco"][ (i, i) ] = self.t.PEON
+            self.t.fichasDelEquipo[self.blanco][ (i, i) ] = self.t.PEON
 
         comerEnCadena = self.t.movimientosComerFicha(0, 0)
         self.assertEqual(len( tuple(comerEnCadena) ), 1)
 
     def testComerConBifurcacion(self):
-        self.t.fichasDelEquipo["Negro"][ (0, 0) ] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][ (0, 0) ] = self.t.PEON
         for i in range(1, self.t.LONG_TABLERO, 2):
-            self.t.fichasDelEquipo["Blanco"][ (i, i) ] = self.t.PEON
-        self.t.fichasDelEquipo["Blanco"][ (1, 3) ] = self.t.PEON
+            self.t.fichasDelEquipo[self.blanco][ (i, i) ] = self.t.PEON
+        self.t.fichasDelEquipo[self.blanco][ (1, 3) ] = self.t.PEON
 
         comerEnCadena = self.t.movimientosComerFicha(0, 0)
         self.assertEqual(len( tuple(comerEnCadena) ), 2)
 
     def testComerConBifurcacionesConvergentes(self):
-        self.t.fichasDelEquipo["Negro"][ (2, 0) ] = self.t.PEON
+        x, y = (2, 0)
+        self.t.fichasDelEquipo[self.negro][ (x, y) ] = self.t.PEON
         for i in range(1, self.t.LONG_TABLERO, 2):
             for j in range(1, self.t.LONG_TABLERO, 2):
-                self.t.fichasDelEquipo["Blanco"][ (i, j) ] = self.t.PEON
-        print(tuple(self.t.movimientosComerFicha(2, 0)))
-        self.assertEqual(len( tuple(self.t.movimientosComerFicha(2, 0)) ), 5)
-        for salto in self.t.movimientosComerFicha(2, 0):
+                self.t.fichasDelEquipo[self.blanco][ (i, j) ] = self.t.PEON
+        self.assertEqual(len( tuple(self.t.movimientosComerFicha(x, y)) ), 5)
+        for salto in self.t.movimientosComerFicha(x, y):
             self.assertEqual(len(salto), 3)
 
     def testMovimientosDamaConFichas(self):
-        e1 = self.t.EQUIPOS[0]
-        e2 = self.t.EQUIPOS[1]
-        self.t.fichasDelEquipo[e1][(3, 3)] = self.t.DAMA
-        self.t.fichasDelEquipo[e1][(1, 1)] = self.t.PEON
+        self.t.fichasDelEquipo[self.blanco][(3, 3)] = self.t.DAMA
+        self.t.fichasDelEquipo[self.blanco][(1, 1)] = self.t.PEON
 
-        self.t.fichasDelEquipo[e2][(6, 6)] = self.t.PEON
-        self.t.fichasDelEquipo[e2][(5, 1)] = self.t.DAMA
-        self.t.fichasDelEquipo[e2][(1, 5)] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][(6, 6)] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][(5, 1)] = self.t.DAMA
+        self.t.fichasDelEquipo[self.negro][(1, 5)] = self.t.PEON
 
         self.assertEqual(len( tuple(self.t.movimientosFicha(3, 3)) ), 8)
 
