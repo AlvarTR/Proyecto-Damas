@@ -12,6 +12,27 @@ class Tablero():
         self.filaObjetivoDelEquipo = {self.EQUIPOS[0]:0, self.EQUIPOS[1]:self.LONG_TABLERO - 1}
         self.fichasDelEquipo = {e:{} for e in self.EQUIPOS}
 
+    def colocarFichasIniciales(self, relacionCasillasFichas=0.4):
+        filasPeones = int(self.LONG_TABLERO*relacionCasillasFichas)
+
+        primeraFila = 0
+        ultimaFila = self.LONG_TABLERO - 1
+
+        for e in self.fichasDelEquipo:
+            self.fichasDelEquipo[e].clear()
+
+        for e in self.filaObjetivoDelEquipo:
+            inicio = primeraFila
+            fin = ultimaFila
+            if self.filaObjetivoDelEquipo[e] == primeraFila:
+                inicio = self.LONG_TABLERO - filasPeones
+            elif self.filaObjetivoDelEquipo[e] == ultimaFila:
+                fin = filasPeones-1 #-1 para hacer 0 -> self.FILAS_PEONES-1 (2) en el bucle
+
+            for y in range(inicio, fin+1): #+1 porque "final" es el ultimo valor que queremos rellenar
+                for x in iter(x for x in range(self.LONG_TABLERO) if self.posicionValida(x, y)):
+                    self.fichasDelEquipo[e][(x, y)] = self.PEON
+
     def posicionValida(self, x, y):
         EH = False
         if x < 0 or x >= self.LONG_TABLERO:
@@ -44,7 +65,13 @@ class Tablero():
         if equipo not in self.EQUIPOS:
             return EH
 
-        return len(self.fichasDelEquipo[equipo])
+        coordenadasValidas = 0
+        for x, y in self.fichasDelEquipo[equipo]:
+            if not self.posicionValida(x, y):
+                continue
+            coordenadasValidas += 1
+
+        return coordenadasValidas
 
 
     def rangoFicha(self, x, y):
@@ -207,7 +234,30 @@ class Tablero():
     def copia(self):
         return self.__copy__()
 
-class PruebasMovimiento(unittest.TestCase):
+
+
+class PruebasFichasIniciales(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.t = Tablero()
+
+    def setUp(self):
+        self.t.colocarFichasIniciales()
+
+    def testFichasInicialesBienPuestas(self):
+        #print(self.t)
+        for e in self.t.fichasDelEquipo:
+            self.assertEqual(self.t.fichasPorEquipo(e), 12)
+
+    def testRangoMovFichasIniciales(self):
+        for e in self.t.fichasDelEquipo:
+            for x, y in self.t.fichasDelEquipo[e]:
+                rangoFicha = tuple(self.t.rangoFicha(x, y))
+                self.assertGreater(len(rangoFicha), 0)
+                self.assertLessEqual(len(rangoFicha), 2)
+
+
+class PruebasDesplazamiento(unittest.TestCase):
     def setUp(self):
         self.t = Tablero()
         self.blanco = self.t.EQUIPOS[0]
@@ -243,6 +293,7 @@ class PruebasMovimiento(unittest.TestCase):
         rangoDama = tuple(self.t.rangoFicha(3, 3))
         self.assertEqual(len( rangoDama ), 2+2+2+3)
 
+
 class PruebasTablero(unittest.TestCase):
     def setUp(self):
         self.t = Tablero()
@@ -259,6 +310,11 @@ class PruebasTablero(unittest.TestCase):
 
         for e in copia.fichasDelEquipo:
             self.assertEqual(len(copia.fichasDelEquipo[e]), 1)
+
+    def testEHFichasPorEquipo(self):
+        self.assertEqual(self.t.fichasPorEquipo("Random"), -1)
+        self.assertEqual(self.t.fichasPorEquipo(3), -1)
+
 
 class PruebasComer(unittest.TestCase):
     def setUp(self):
@@ -324,6 +380,13 @@ class PruebasComer(unittest.TestCase):
         for salto in comerEnCadena:
             self.assertEqual(len(salto), 3)
 
+
+class PruebasMovimiento(unittest.TestCase):
+    def setUp(self):
+        self.t = Tablero()
+        self.blanco = self.t.EQUIPOS[0]
+        self.negro = self.t.EQUIPOS[1]
+
     def testMovimientosDamaConFichas(self):
         self.t.fichasDelEquipo[self.blanco][(3, 3)] = self.t.DAMA
         self.t.fichasDelEquipo[self.blanco][(1, 1)] = self.t.PEON
@@ -334,6 +397,8 @@ class PruebasComer(unittest.TestCase):
 
         movDama = tuple(self.t.movimientosFicha(3, 3))
         self.assertEqual(len( movDama ), 8)
+
+
 
 
 if __name__ == "__main__":

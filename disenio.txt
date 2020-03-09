@@ -7,6 +7,10 @@ PRINCIPALES CARACTERÍSTICAS
     Las fichas del tablero se mueven "sin estados"
     Mejor para IA
 
+-> Iteradores siempre que se pueda
+-> Equipos como diccionarios de coordenadas
+
+
 COMPONENTES
 - Tablero
     Guarda:
@@ -18,12 +22,14 @@ COMPONENTES
       Contar fichas en el tablero
       Copiar el tablero
       El rango de movimiento de sus fichas
+        Comer
+        Moverse
 
-- Reglas
+- Reglas (DEPRECATED)
     Guarda:
       Nada
     Calcula:
-      Nada?
+      Nada
 
 - Fichas
     Guarda:
