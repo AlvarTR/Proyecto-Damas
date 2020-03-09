@@ -37,10 +37,17 @@ COMPONENTES
     Calcula:
       Nada
 
-- Turnos
+- GestorTurnos
     Guarda:
       Las fichas comidas por cada jugador
       A quién le toca mover
     Calcula:
       A quién le toca mover próximamente
-      Bloquear los movimientos del otro jugador
+      Bloquear los movimientos del jugador que no está jugando
+
+- DamasPorConsola
+    Guarda:
+      GestorTurnos utilizado
+      IIAA implementadas
+    Calcula:
+      Entradas por consola

@@ -1,8 +1,9 @@
+import ValoresPorDefecto as vpd
 from Fichas import *
 import unittest
 
 class Tablero():
-    def __init__(self, longTablero=8, equipos=("Blanco", "Negro")):
+    def __init__(self, longTablero=vpd.LONG_TABLERO, equipos=vpd.EQUIPOS):
         self.LONG_TABLERO = 8
         self.EQUIPOS = equipos
 
@@ -12,7 +13,7 @@ class Tablero():
         self.filaObjetivoDelEquipo = {self.EQUIPOS[0]:0, self.EQUIPOS[1]:self.LONG_TABLERO - 1}
         self.fichasDelEquipo = {e:{} for e in self.EQUIPOS}
 
-    def colocarFichasIniciales(self, relacionCasillasFichas=0.4):
+    def colocaFichasIniciales(self, relacionCasillasFichas=0.4):
         filasPeones = int(self.LONG_TABLERO*relacionCasillasFichas)
 
         primeraFila = 0
@@ -137,7 +138,7 @@ class Tablero():
             ySiguiente = yObjetivo + dirY
             if not self.posicionValida(xSiguiente, ySiguiente):
                 continue
-            if self.equipoEnCoordenadas(xObjetivo + dirX, yObjetivo + dirY):
+            if self.equipoEnCoordenadas(xSiguiente, ySiguiente):
                 continue
 
             fichasQuePuedeComerYMovResultante[ (xObjetivo, yObjetivo) ] = (xSiguiente, ySiguiente)
@@ -194,6 +195,15 @@ class Tablero():
         yield from self.movimientosComerFicha(x, y)
         yield from self.desplazamientoFicha(x, y)
 
+    def movimientosPorEquipo(self, equipo):
+        EH = iter(())
+        if not equipo in self.EQUIPOS:
+            return EH
+
+        for (x, y) in self.fichasPorEquipo[equipo]:
+            for movimiento in self.movimientosFicha(x, y):
+                yield ((x, y), movimiento)
+
 
     def __str__(self):
         string = "\n"
@@ -242,7 +252,7 @@ class PruebasFichasIniciales(unittest.TestCase):
         self.t = Tablero()
 
     def setUp(self):
-        self.t.colocarFichasIniciales()
+        self.t.colocaFichasIniciales()
 
     def testFichasInicialesBienPuestas(self):
         #print(self.t)
