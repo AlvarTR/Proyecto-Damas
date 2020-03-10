@@ -25,7 +25,7 @@ class GestorTurnos():
     def moverFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
         pass
 
-    def turno(self):
+    def turno(self, xFicha, yFicha, xObjetivo, yObjetivo):
         #Comprueba de quien es el turno
         #Haz un movimiento (comer o desplazarse)
 
@@ -34,6 +34,11 @@ class GestorTurnos():
         #Termina el turno modificando variables
         self.turno += 1
         self.actualizaContadores()
+
+    def __str__(self):
+        string = "Turno del equipo " + self.equipoActual + "\n"
+        string += self.tablero.__str__() + "\n"
+        return string
 
 class PruebasTurnos(unittest.TestCase):
     def setUp(self):
