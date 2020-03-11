@@ -116,7 +116,7 @@ class Tablero():
         for xObjetivo, yObjetivo in self.rangoFicha(x, y):
             if self.equipoEnCoordenadas(xObjetivo, yObjetivo):
                 continue
-            yield (xObjetivo, yObjetivo)
+            yield ( (xObjetivo, yObjetivo), )
 
     def opcionesComerFicha(self, x, y):
         EH = {}
@@ -173,8 +173,6 @@ class Tablero():
         return simulacion
 
     def movimientosComerFicha(self, x, y):
-        saltosTrasComer = ()
-
         for (xObjetivo, yObjetivo), (xTrasComer, yTrasComer) in self.opcionesComerFicha(x, y).items():
             t = self.tableroEnElQueFichaComeAFicha(x, y, xObjetivo, yObjetivo)
             if not t:
@@ -358,6 +356,9 @@ class PruebasComer(unittest.TestCase):
         self.assertEqual(len(self.t.fichasDelEquipo[self.negro]), 1)
         self.assertEqual(len(self.t.fichasDelEquipo[self.blanco]), 1)
 
+        print(self.t)
+        print(tuple(self.t.movimientosFicha(3, 3)))
+
         self.assertEqual(len(simulacion.fichasDelEquipo[self.negro]), 1)
         self.assertEqual(len(simulacion.fichasDelEquipo[self.blanco]), 0)
 
@@ -386,6 +387,7 @@ class PruebasComer(unittest.TestCase):
                 self.t.fichasDelEquipo[self.blanco][ (i, j) ] = self.t.PEON
 
         comerEnCadena = tuple(self.t.movimientosComerFicha(x, y))
+        #print(comerEnCadena)
         self.assertEqual(len( comerEnCadena ), 5)
         for salto in comerEnCadena:
             self.assertEqual(len(salto), 3)
