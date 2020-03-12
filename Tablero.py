@@ -116,7 +116,7 @@ class Tablero():
         for xObjetivo, yObjetivo in self.rangoFicha(x, y):
             if self.equipoEnCoordenadas(xObjetivo, yObjetivo):
                 continue
-            yield ( (xObjetivo, yObjetivo), )
+            yield (xObjetivo, yObjetivo)
 
     def opcionesComerFicha(self, x, y):
         EH = {}
@@ -173,21 +173,8 @@ class Tablero():
         return simulacion
 
     def movimientosComerFicha(self, x, y):
-        for (xObjetivo, yObjetivo), (xTrasComer, yTrasComer) in self.opcionesComerFicha(x, y).items():
-            t = self.tableroEnElQueFichaComeAFicha(x, y, xObjetivo, yObjetivo)
-            if not t:
-                continue
-
-            contadorSecuencias = 0
-            for secuencia in t.movimientosComerFicha( xTrasComer, yTrasComer ):
-                listaEditada = ( (xTrasComer, yTrasComer), )
-                for salto in secuencia:
-                    listaEditada += (salto, )
-                yield listaEditada
-                contadorSecuencias += 1
-
-            if contadorSecuencias == 0:
-                yield ( (xTrasComer, yTrasComer), )
+        for coor, (xTrasComer, yTrasComer) in self.opcionesComerFicha(x, y).items():
+            yield (xTrasComer, yTrasComer)
 
     def movimientosFicha(self, x, y):
         yield from self.movimientosComerFicha(x, y)

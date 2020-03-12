@@ -23,9 +23,13 @@ class GestorTurnos():
             self.ronda = int(self.turno / self.NUM_EQUIPOS)
 
     def moverFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
-        for secuencia in self.tablero.movimientosFicha(xFicha, yFicha):
-            for coordenada in secuencia:
-                pass
+        for (x, y) in self.tablero.movimientosFicha(xFicha, yFicha):
+            if x != xObjetivo:
+                continue
+            if y != yObjetivo:
+                continue
+
+            nuevoTablero = self.tablero.tableroEnElQueFichaComeAFicha(xFicha, yFicha)
 
         pass
 
