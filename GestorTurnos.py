@@ -29,7 +29,8 @@ class GestorTurnos():
             if y != yObjetivo:
                 continue
 
-            nuevoTablero = self.tablero.tableroEnElQueFichaComeAFicha(xFicha, yFicha)
+            nuevoTablero = self.tablero.tableroEnElQueFichaComeAFicha(xFicha, yFicha, xObjetivo, yObjetivo)
+            
 
         pass
 
