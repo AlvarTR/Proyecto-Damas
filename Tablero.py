@@ -66,25 +66,12 @@ class Tablero():
             return EH
 
         coordenadasValidas = 0
-        for x, y in self.fichasDelEquipo[equipo]:
+        for (x, y) in self.fichasDelEquipo[equipo] :
             if not self.posicionValida(x, y):
                 continue
             coordenadasValidas += 1
 
         return coordenadasValidas
-
-
-    def tableroTrasMovimientoFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
-        EH = None
-        equipo = self.equipoEnCoordenadas(xFicha, yFicha)
-        if not equipo:
-            return EH
-
-        simulacion = self.copia()
-
-        ## TODO 
-
-        return simulacion
 
 
     def rangoFicha(self, x, y):
@@ -130,13 +117,12 @@ class Tablero():
                 continue
             yield (xObjetivo, yObjetivo)
 
-    def movimientosComerFicha(self, x, y):
-        EH = {}
+    def movimientosTrasComerFicha(self, x, y):
+        EH = iter(())
         equipo = self.equipoEnCoordenadas(x, y)
         if not equipo:
             return EH
 
-        fichasQuePuedeComerYMovResultante = {}
         for xObjetivo, yObjetivo in self.rangoFicha(x, y):
             equipoObjetivo = self.equipoEnCoordenadas(xObjetivo, yObjetivo)
             if not equipoObjetivo:
@@ -156,7 +142,7 @@ class Tablero():
             yield (xSiguiente, ySiguiente)
 
     def movimientosFicha(self, x, y):
-        yield from self.movimientosComerFicha(x, y)
+        yield from self.movimientosTrasComerFicha(x, y)
         yield from self.desplazamientoFicha(x, y)
 
     def movimientosEquipo(self, equipo):
@@ -166,6 +152,37 @@ class Tablero():
 
         for (x, y) in self.fichasDelEquipo[equipo]:
             yield from self.movimientosFicha(x, y)
+
+
+    def tableroTrasMovimientoFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
+        EH = None
+        equipo = self.equipoEnCoordenadas(xFicha, yFicha)
+        if not equipo:
+            return EH
+
+        objetivoValido = tuple( coor for coor in self.movimientosFicha(xFicha, yFicha) if coor == (xObjetivo, yObjetivo) )
+        if not objetivoValido:
+            return EH
+
+        sim = self.copia()
+
+        ficha = sim.fichasDelEquipo[equipo].pop( (xFicha, yFicha) )
+        sim.fichasDelEquipo[equipo][ (xObjetivo, yObjetivo) ] = ficha
+
+        dirX = -1 if xObjetivo - xFicha < 0 else 1
+        dirY = -1 if yObjetivo - yFicha < 0 else 1
+        xAnterior = xObjetivo - dirX
+        yAnterior = yObjetivo - dirY
+
+        if (xAnterior, yAnterior) == (xFicha, yFicha):
+            return sim
+
+        equipoObjetivo = self.equipoEnCoordenadas(xAnterior, yAnterior)
+        if not equipoObjetivo:
+            return sim
+
+        sim.fichasDelEquipo[equipoObjetivo].pop( (xAnterior, yAnterior) )
+        return sim
 
 
     def tableroConResaltes(self, coordenadasAResaltar=()):
@@ -222,7 +239,6 @@ class Tablero():
 
     def copia(self):
         return self.__copy__()
-
 
 
 class PruebasFichasIniciales(unittest.TestCase):
@@ -339,7 +355,7 @@ class PruebasComer(unittest.TestCase):
         self.assertEqual(len(self.t.fichasDelEquipo[self.negro]), 1)
         self.assertEqual(len(self.t.fichasDelEquipo[self.blanco]), 1)
 
-        simulacion = self.t.tableroTrasMovimientoFicha( coorN[0], coorN[1], coorB[0], coorB[1] )
+        simulacion = self.t.tableroTrasMovimientoFicha( coorN[0], coorN[1], coorB[0]+1, coorB[1]+1 )
         self.assertEqual(len(self.t.fichasDelEquipo[self.negro]), 1)
         self.assertEqual(len(self.t.fichasDelEquipo[self.blanco]), 1)
 
@@ -351,7 +367,7 @@ class PruebasComer(unittest.TestCase):
         for i in range(1, self.t.LONG_TABLERO, 2):
             self.t.fichasDelEquipo[self.blanco][ (i, i) ] = self.t.PEON
 
-        comerEnCadena = tuple(self.t.movimientosComerFicha(0, 0))
+        comerEnCadena = tuple(self.t.movimientosTrasComerFicha(0, 0))
         self.assertEqual(len( comerEnCadena ), 1)
 
     def testComerConBifurcacion(self):
@@ -361,7 +377,7 @@ class PruebasComer(unittest.TestCase):
         self.t.fichasDelEquipo[self.blanco][ (1, 3) ] = self.t.PEON
 
         #print(self.t.tableroConMovimientosFicha(0, 0))
-        comerEnCadena = tuple(self.t.movimientosComerFicha(0, 0))
+        comerEnCadena = tuple(self.t.movimientosTrasComerFicha(0, 0))
         self.assertEqual(len( comerEnCadena ), 1)
 
     def testComerConBifurcacionesConvergentes(self):
@@ -372,7 +388,7 @@ class PruebasComer(unittest.TestCase):
                 self.t.fichasDelEquipo[self.blanco][ (i, j) ] = self.t.PEON
 
         #print(self.t.tableroConMovimientosFicha(x, y))
-        comerEnCadena = tuple(self.t.movimientosComerFicha(x, y))
+        comerEnCadena = tuple(self.t.movimientosTrasComerFicha(x, y))
         #print(comerEnCadena)
         self.assertEqual(len( comerEnCadena ), 2)
 
