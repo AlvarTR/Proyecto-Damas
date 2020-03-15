@@ -30,7 +30,7 @@ class GestorTurnos():
                 continue
 
             nuevoTablero = self.tablero.tableroEnElQueFichaComeAFicha(xFicha, yFicha, xObjetivo, yObjetivo)
-            
+
 
         pass
 

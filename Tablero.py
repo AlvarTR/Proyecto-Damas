@@ -185,7 +185,7 @@ class Tablero():
 
 
     def tableroConResaltes(self, coordenadasAResaltar=()):
-        CARACTER_RESALTAR = chr(9632)
+        CARACTER_RESALTE = "■" #chr(9632)
 
         setCoordenadas = set(coordenadasAResaltar)
         string = "\n"
@@ -193,20 +193,16 @@ class Tablero():
             for x in range(self.LONG_TABLERO):
 
                 if (x, y) in setCoordenadas:
-                    string += CARACTER_RESALTAR
+                    string += CARACTER_RESALTE
                     continue
 
-                ficha = None
                 e = self.equipoEnCoordenadas(x, y)
                 if e:
                     ficha = self.fichasDelEquipo[e][(x, y)]
+                    string += ficha.impresion(e[0])
+                    continue
 
-                if ficha is self.PEON:
-                    string += e[0].lower()
-                elif ficha is self.DAMA:
-                    string += e[0].capitalize()
-                else:
-                    string += "_"
+                string += "_"
 
             string += "\n"
 
@@ -285,10 +281,12 @@ class PruebasDesplazamiento(unittest.TestCase):
         (0, -1): 0,
         (2, 3): 0
         }
-        for x, y in coordenadasConRespuestas:
+        for (x, y) in coordenadasConRespuestas:
             self.t.fichasDelEquipo[self.blanco][(x, y)] = self.t.DAMA
             rangoDama = tuple(self.t.rangoFicha(x, y))
             self.assertEqual(len( rangoDama ), coordenadasConRespuestas[ (x, y) ], "Fallo en coordenadas " + str(x) + ", " + str(y))
+
+            #print(self.t)
 
             self.t.fichasDelEquipo[self.blanco].pop( (x, y) )
 
