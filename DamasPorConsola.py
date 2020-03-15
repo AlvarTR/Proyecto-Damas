@@ -1,11 +1,14 @@
-import GestorTurnos
+import unittest
 
-def intro():
-    return "---------\n| DAMAS |\n---------"
+class DamasPorConsola():
+    def __init__(self):
+        pass
 
-if __name__ == "__main__":
-    print(intro())
-    input("Pulsa intro para comenzar\n")
-    
-    gestor = GestorTurnos.GestorTurnos()
-    print(gestor)
+    def intro(self):
+        print("---------\n| DAMAS |\n---------")
+
+    def output(self, gestorTurnos):
+        print(gestorTurnos)
+
+    def recogeCoordenadas(self, mensaje):
+        return input(mensaje).split()

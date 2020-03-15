@@ -13,6 +13,7 @@ class Tablero():
         self.filaObjetivoDelEquipo = {self.EQUIPOS[0]:0, self.EQUIPOS[1]:self.LONG_TABLERO - 1}
         self.fichasDelEquipo = {e:{} for e in self.EQUIPOS}
 
+
     def colocaFichasIniciales(self, relacionCasillasFichas=0.4):
         filasPeones = int(self.LONG_TABLERO*relacionCasillasFichas)
 
@@ -32,6 +33,7 @@ class Tablero():
             for y in range(inicio, fin+1): #+1 porque "final" es el ultimo valor que queremos rellenar
                 for x in iter(x for x in range(self.LONG_TABLERO) if self.posicionValida(x, y)):
                     self.fichasDelEquipo[e][ (x, y) ] = self.PEON
+
 
     def posicionValida(self, x, y):
         EH = False
@@ -219,6 +221,7 @@ class Tablero():
 
     def __str__(self):
         return self.tableroConResaltes()
+
 
     def __copy__(self):
         t = Tablero(self.LONG_TABLERO, self.EQUIPOS)

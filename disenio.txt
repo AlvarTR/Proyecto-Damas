@@ -33,6 +33,7 @@ COMPONENTES
 - Fichas
     Guarda:
       Tipos y características de fichas
+      Como imprimir cada ficha
     Calcula:
       Nada
 
