@@ -19,17 +19,16 @@ COMPONENTES
     Calcula:
       Si las fichas están bien puestas
       Como imprimir el tablero
+        Tablero por defecto
+        Tablero resaltando movimientos
+          Equipo
+          Ficha concreta
       Contar fichas en el tablero
       Copiar el tablero
+        Tableros resultantes de los movimientos
       El rango de movimiento de sus fichas
         Comer
         Moverse
-
-- Reglas (DEPRECATED)
-    Guarda:
-      Nada
-    Calcula:
-      Nada
 
 - Fichas
     Guarda:
@@ -51,3 +50,9 @@ COMPONENTES
       IIAA implementadas
     Calcula:
       Entradas por consola
+
+- Reglas (DEPRECATED)
+    Guarda:
+      Nada
+    Calcula:
+      Nada

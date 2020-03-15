@@ -31,7 +31,7 @@ class Tablero():
 
             for y in range(inicio, fin+1): #+1 porque "final" es el ultimo valor que queremos rellenar
                 for x in iter(x for x in range(self.LONG_TABLERO) if self.posicionValida(x, y)):
-                    self.fichasDelEquipo[e][(x, y)] = self.PEON
+                    self.fichasDelEquipo[e][ (x, y) ] = self.PEON
 
     def posicionValida(self, x, y):
         EH = False
@@ -160,8 +160,7 @@ class Tablero():
         if not equipo:
             return EH
 
-        objetivoValido = tuple( coor for coor in self.movimientosFicha(xFicha, yFicha) if coor == (xObjetivo, yObjetivo) )
-        if not objetivoValido:
+        if not any(coor for coor in self.movimientosFicha(xFicha, yFicha) if coor == (xObjetivo, yObjetivo)):
             return EH
 
         sim = self.copia()
