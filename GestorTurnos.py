@@ -44,22 +44,22 @@ class GestorTurnos():
 
 
     def turnoJugador(self):
-        #Comprueba de quien es el turno
-        self.io.output(self)
+        x = -1
+        while x < 0:
+            #Comprueba de quien es el turno
+            self.io.output(self)
 
-        #Comprueba coordenadas que se introducen
-        x, y = (-1, -1)
-        while x < 0 or y < 0:
+            #Comprueba coordenadas que se introducen
             x = self.io.recogeCoordenada("Coordenada x de la ficha que quiere mover ")
             y = self.io.recogeCoordenada("Coordenada y de la ficha que quiere mover ")
 
             if not (x, y) in self.tablero.fichasDelEquipo[self.equipoActual]:
                 self.io.output("Esas coordenadas no tienen una ficha de tu equipo")
-                x, y = (-1, -1)
+                x = -1
                 continue
             if not any( coor for coor in self.tablero.movimientosFicha(x, y) ):
                 self.io.output("Esa ficha no tiene movimiento")
-                x, y = (-1, -1)
+                x = -1
                 continue
 
             self.io.output(self.tablero.tableroConMovimientosFicha(x, y))
@@ -68,16 +68,23 @@ class GestorTurnos():
             yObjetivo = self.io.recogeCoordenada("Coordenada y donde quiere mover ")
             if not any( coor for coor in self.tablero.movimientosFicha(x, y) if coor == (xObjetivo, yObjetivo) ):
                 self.io.output("Esas coordenadas no corresponden con un destino de esta ficha")
-                x, y = (-1, -1)
+                x = -1
                 continue
-        #Haz un movimiento (comer o desplazarse)
 
+        #Haz un movimiento (comer o desplazarse)
+        nuevoTablero = self.moverFicha(x, y, xObjetivo, yObjetivo)
 
         #Comprueba si alguna ficha del equipo esta en posicion de dama
+        damasColocadas = nuevoTablero.peonesPorDamas()
             #Si es asi, actualiza esa ficha y termina el turno
+        if damasColocadas:
+            self.turnoConcluido()
+            return damasColocadas
+
         #Comer implica seguir comiendo siempre que sea posible
         #Termina el turno
         self.turnoConcluido()
+        return nuevoTablero
 
     def turnoIA(self):
         pass
@@ -90,26 +97,24 @@ class GestorTurnos():
 
     def jugadorContraIA(self):
         while True:
-            self.turnoJugador()
+            self.tablero = self.turnoJugador()
             if self.equipoQueHaPerdido():
                 break
-            self.turnoIA()
+            self.tablero = self.turnoIA()
             if self.equipoQueHaPerdido():
                 break
 
     def jugadorContraJugador(self):
         while True:
-            self.turnoJugador()
-            if self.equipoQueHaPerdido():
-                break
-            self.turnoJugador()
+            self.tablero = self.turnoJugador()
             if self.equipoQueHaPerdido():
                 break
 
 
     def __str__(self):
-        string = "Turno del equipo " + self.equipoActual + "\n"
-        string += self.tablero.tableroConMovimientosEquipo(self.equipoActual) + "\n"
+        string = ""
+        string += str(self.tablero) + "\n"
+        string += "Turno del equipo " + self.equipoActual + "\n"
         return string
 
 class PruebasTurnos(unittest.TestCase):

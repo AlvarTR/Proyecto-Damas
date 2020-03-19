@@ -75,6 +75,24 @@ class Tablero():
 
         return coordenadasValidas
 
+    def peonesPorDamas(self):
+        EH = None
+        tableroCambiado = False
+        for e in self.EQUIPOS:
+            filaDama = self.filaObjetivoDelEquipo[e]
+            if any(x for x in range(self.LONG_TABLERO) if ((x, filaDama), self.PEON) in self.fichasDelEquipo[e].items()):
+                tableroCambiado = True
+
+        if not tableroCambiado:
+            return EH
+
+        tableroNuevasDamas = self.copia()
+        for e in self.EQUIPOS:
+            filaDama = self.filaObjetivoDelEquipo[e]
+            for x in (x for x in range(self.LONG_TABLERO) if ((x, filaDama), self.PEON) in self.fichasDelEquipo[e].items()):
+                tableroNuevasDamas.fichasDelEquipo[e][ (x, filaDama) ] = tableroNuevasDamas.DAMA
+
+        return tableroNuevasDamas
 
     def rangoFicha(self, x, y):
         EH = iter(())
@@ -214,7 +232,7 @@ class Tablero():
         string += "\n"
 
         string = "|".join(string)
-        string = "_" * (2*self.LONG_TABLERO + 2) + string
+        string = "_" * (2*(self.LONG_TABLERO + 1) + 1) + string
 
         return string
 
@@ -226,6 +244,24 @@ class Tablero():
 
     def __str__(self):
         return self.tableroConResaltes()
+
+
+    def __eq__(self, other):
+        EH = False
+        if not instanceof(other, Tablero):
+            return EH
+
+        if self.LONG_TABLERO != other.LONG_TABLERO:
+            return EH
+
+        if self.EQUIPOS != other.EQUIPOS:
+            return EH
+
+        for e in self.EQUIPOS:
+            if self.fichasDelEquipo[e] != other.fichasDelEquipo[e]:
+                return EH
+
+        return True
 
 
     def __copy__(self):

@@ -11,4 +11,4 @@ class DamasPorConsola():
         print(gestorTurnos)
 
     def recogeCoordenada(self, mensaje):
-        return int(input(mensaje))
+        return int(input(mensaje).strip())
