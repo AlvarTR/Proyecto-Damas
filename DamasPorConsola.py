@@ -10,5 +10,5 @@ class DamasPorConsola():
     def output(self, gestorTurnos):
         print(gestorTurnos)
 
-    def recogeCoordenadas(self, mensaje):
-        return input(mensaje).split()
+    def recogeCoordenada(self, mensaje):
+        return int(input(mensaje))

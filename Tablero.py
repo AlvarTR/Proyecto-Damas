@@ -190,8 +190,9 @@ class Tablero():
         CARACTER_RESALTE = "■" #chr(9632)
 
         setCoordenadas = set(coordenadasAResaltar)
-        string = "\n"
+        string = ""
         for y in range(self.LONG_TABLERO):
+            string += "\n" + str(y)
             for x in range(self.LONG_TABLERO):
 
                 if (x, y) in setCoordenadas:
@@ -206,10 +207,14 @@ class Tablero():
 
                 string += "_"
 
-            string += "\n"
+
+        string += "\n "
+        for i in range(self.LONG_TABLERO):
+            string += str(i)
+        string += "\n"
 
         string = "|".join(string)
-        string = "_" * (2*self.LONG_TABLERO + 1) + string
+        string = "_" * (2*self.LONG_TABLERO + 2) + string
 
         return string
 
