@@ -30,12 +30,6 @@ class GestorTurnos():
         if iteradorEquipoActual == 0:
             self.ronda = int(self.turno / self.NUM_EQUIPOS)
 
-    def equipoSinFichas(self):
-        for e in self.tablero.EQUIPOS:
-            if not self.tablero.fichasDelEquipo[e]:
-                return e
-
-
     def moverFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
         if not any( coor for coor in self.tablero.movimientosFicha(xFicha, yFicha) if coor == (xObjetivo, yObjetivo) ):
             return None
@@ -87,28 +81,42 @@ class GestorTurnos():
         return nuevoTablero
 
     def turnoIA(self):
-        pass
+        nuevoTablero = None
+        ## TODO
+        self.turnoConcluido()
+        return nuevoTablero
 
-    def equipoQueHaPerdido(self):
-        e = self.equipoSinFichas()
-        if e:
-            self.io.output(e + " ha perdido")
-        return e
+
+    def equipoGanador(self):
+        ganador = None
+        for equipo in self.tablero.EQUIPOS:
+            if not self.tablero.fichasDelEquipo[equipo]:
+                continue
+
+            if ganador:
+                ganador = None
+                break
+
+            ganador = equipo
+        return ganador
+
+    def imprimeEquipoGanador(self):
+        self.io.output(self.equipoGanador() + "ha ganado")
+
 
     def jugadorContraIA(self):
-        while True:
+        while not self.equipoGanador():
             self.tablero = self.turnoJugador()
-            if self.equipoQueHaPerdido():
-                break
-            self.tablero = self.turnoIA()
-            if self.equipoQueHaPerdido():
+            if self.equipoGanador():
                 break
 
+            self.tablero = self.turnoIA()
+        self.imprimeEquipoGanador()
+
     def jugadorContraJugador(self):
-        while True:
+        while not self.equipoGanador():
             self.tablero = self.turnoJugador()
-            if self.equipoQueHaPerdido():
-                break
+        self.imprimeEquipoGanador()
 
 
     def __str__(self):
@@ -116,6 +124,20 @@ class GestorTurnos():
         string += str(self.tablero) + "\n"
         string += "Turno del equipo " + self.equipoActual + "\n"
         return string
+
+
+    def imprimeEquipoPerdedor(self):
+        ## DEPRECATED
+        e = self.equipoSinFichas()
+        if e:
+            self.io.output(e + " ha perdido")
+        return e
+
+    def equipoSinFichas(self):
+        ## DEPRECATED
+        for e in self.tablero.EQUIPOS:
+            if not self.tablero.fichasDelEquipo[e]:
+                return e
 
 class PruebasTurnos(unittest.TestCase):
     def setUp(self):
