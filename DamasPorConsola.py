@@ -11,4 +11,13 @@ class DamasPorConsola():
         print(gestorTurnos)
 
     def recogeCoordenada(self, mensaje):
-        return int(input(mensaje).strip())
+        numero = None
+        while numero is None:
+            numero = input(mensaje).strip()
+            try:
+                numero = int(numero)
+            except ValueError:
+                print("Numero no valido")
+                numero = None
+
+        return numero

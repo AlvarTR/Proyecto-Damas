@@ -23,12 +23,12 @@ class GestorTurnos():
 
 
     def turnoConcluido(self):
-        self.turno += 1
         iteradorEquipoActual = self.turno % self.NUM_EQUIPOS
         self.equipoActual = self.tablero.EQUIPOS[iteradorEquipoActual]
 
         if iteradorEquipoActual == 0:
             self.ronda = int(self.turno / self.NUM_EQUIPOS)
+        self.turno += 1
 
     def moverFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
         if not any( coor for coor in self.tablero.movimientosFicha(xFicha, yFicha) if coor == (xObjetivo, yObjetivo) ):
@@ -69,11 +69,34 @@ class GestorTurnos():
         nuevoTablero = self.moverFicha(x, y, xObjetivo, yObjetivo)
 
         #Comprueba si alguna ficha del equipo esta en posicion de dama
-        damasColocadas = nuevoTablero.peonesPorDamas()
+        damaColocada = nuevoTablero.peonesPorDamas()
             #Si es asi, actualiza esa ficha y termina el turno
-        if damasColocadas:
+        if damaColocada:
             self.turnoConcluido()
-            return damasColocadas
+            return damaColocada
+
+        i = 1
+        viejoTablero = self.tablero
+        while (xObjetivo, yObjetivo) in viejoTablero.movimientosTrasComerFicha(x, y) and any(nuevoTablero.movimientosTrasComerFicha(xObjetivo, yObjetivo)):
+            if i == 1:
+                self.io.output("Combo!!")
+            elif i > 1:
+                self.io.output("Combo x"+str(i)+"!!")
+
+            x, y = xObjetivo, yObjetivo
+            viejoTablero = nuevoTablero
+
+            xObjetivo = -1
+            while xObjetivo < 0:
+                self.io.output(nuevoTablero.tableroConComidaFicha(x, y))
+
+                xObjetivo = self.io.recogeCoordenada("Coordenada x donde quiere mover ")
+                yObjetivo = self.io.recogeCoordenada("Coordenada y donde quiere mover ")
+                if not any( coor for coor in self.tablero.movimientosTrasComerFicha(x, y) if coor == (xObjetivo, yObjetivo) ):
+                    self.io.output("Esas coordenadas no corresponden con un destino de esta ficha")
+                    xObjetivo = -1
+                    continue
+
 
         #Comer implica seguir comiendo siempre que sea posible
         #Termina el turno

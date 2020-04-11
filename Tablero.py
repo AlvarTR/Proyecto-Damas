@@ -239,6 +239,9 @@ class Tablero():
     def tableroConMovimientosFicha(self, x, y):
         return self.tableroConResaltes(self.movimientosFicha(x, y))
 
+    def tableroConComidaFicha(self, x, y):
+        return self.tableroConResaltes(self.movimientosTrasComerFicha(x, y))
+
     def tableroConMovimientosEquipo(self, equipo):
         return self.tableroConResaltes(self.movimientosEquipo(equipo))
 
