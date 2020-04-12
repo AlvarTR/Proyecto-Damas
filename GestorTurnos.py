@@ -84,11 +84,11 @@ class GestorTurnos():
                 self.io.output("Combo x"+str(i)+"!!")
 
             x, y = xObjetivo, yObjetivo
-            viejoTablero = nuevoTablero
+            self.tablero = nuevoTablero
 
             xObjetivo = -1
             while xObjetivo < 0:
-                self.io.output(nuevoTablero.tableroConComidaFicha(x, y))
+                self.io.output(self.tablero.tableroConComidaFicha(x, y))
 
                 xObjetivo = self.io.recogeCoordenada("Coordenada x donde quiere mover ")
                 yObjetivo = self.io.recogeCoordenada("Coordenada y donde quiere mover ")
@@ -97,6 +97,14 @@ class GestorTurnos():
                     xObjetivo = -1
                     continue
 
+            nuevoTablero = self.moverFicha(x, y, xObjetivo, yObjetivo)
+
+            #Comprueba si alguna ficha del equipo esta en posicion de dama
+            damaColocada = nuevoTablero.peonesPorDamas()
+                #Si es asi, actualiza esa ficha y termina el turno
+            if damaColocada:
+                self.turnoConcluido()
+                return damaColocada
 
         #Comer implica seguir comiendo siempre que sea posible
         #Termina el turno
@@ -114,6 +122,8 @@ class GestorTurnos():
         ganador = None
         for equipo in self.tablero.EQUIPOS:
             if not self.tablero.fichasDelEquipo[equipo]:
+                continue
+            if any(self.tablero.movimientosEquipo(equipo)):
                 continue
 
             if ganador:

@@ -4,7 +4,7 @@ import unittest
 
 class Tablero():
     def __init__(self, longTablero=vpd.LONG_TABLERO, equipos=vpd.EQUIPOS):
-        self.LONG_TABLERO = 8
+        self.LONG_TABLERO = longTablero
         self.EQUIPOS = equipos
 
         self.PEON = nuevoPeon()
@@ -453,6 +453,17 @@ class PruebasMovimiento(unittest.TestCase):
 
         movDama = tuple(self.t.movimientosFicha(3, 3))
         self.assertEqual(len( movDama ), 8)
+
+    def testMovimientosEquipoVacio(self):
+        for equipo in self.t.EQUIPOS:
+            self.assertFalse( any(self.t.movimientosEquipo(equipo)) )
+
+    def testMovimientoFichasBloqueadas(self):
+        self.t = Tablero(longTablero=2)
+        self.t.fichasDelEquipo[self.blanco][(0, 0)] = self.t.PEON
+        self.t.fichasDelEquipo[self.negro][(1, 1)] = self.t.PEON
+        for equipo in self.t.EQUIPOS:
+            self.assertFalse( any(self.t.movimientosEquipo(equipo)) )
 
 
 if __name__ == "__main__":
