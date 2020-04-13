@@ -17,7 +17,6 @@ class GestorTurnos():
 
         self.equipoActual = None
         self.turnoConcluido()
-        print(self.equipoActual)
 
         self.io.intro()
 
@@ -29,12 +28,6 @@ class GestorTurnos():
         if iteradorEquipoActual == 0:
             self.ronda = int(self.turno / self.NUM_EQUIPOS)
         self.turno += 1
-
-    def moverFicha(self, xFicha, yFicha, xObjetivo, yObjetivo):
-        if not any( coor for coor in self.tablero.movimientosFicha(xFicha, yFicha) if coor == (xObjetivo, yObjetivo) ):
-            return None
-
-        return self.tablero.tableroTrasMovimientoFicha(xFicha, yFicha, xObjetivo, yObjetivo)
 
 
     def turnoJugador(self):
@@ -66,7 +59,8 @@ class GestorTurnos():
                 continue
 
         #Haz un movimiento (comer o desplazarse)
-        nuevoTablero = self.moverFicha(x, y, xObjetivo, yObjetivo)
+        viejoTablero = self.tablero
+        nuevoTablero = viejoTablero.tableroTrasMovimientoFicha(x, y, xObjetivo, yObjetivo)
 
         #Comprueba si alguna ficha del equipo esta en posicion de dama
         damaColocada = nuevoTablero.peonesPorDamas()
@@ -76,7 +70,6 @@ class GestorTurnos():
             return damaColocada
 
         i = 1
-        viejoTablero = self.tablero
         while (xObjetivo, yObjetivo) in viejoTablero.movimientosTrasComerFicha(x, y) and any(nuevoTablero.movimientosTrasComerFicha(xObjetivo, yObjetivo)):
             if i == 1:
                 self.io.output("Combo!!")
@@ -84,20 +77,20 @@ class GestorTurnos():
                 self.io.output("Combo x"+str(i)+"!!")
 
             x, y = xObjetivo, yObjetivo
-            self.tablero = nuevoTablero
 
             xObjetivo = -1
             while xObjetivo < 0:
-                self.io.output(self.tablero.tableroConComidaFicha(x, y))
+                self.io.output(nuevoTablero.tableroConComidaFicha(x, y))
 
                 xObjetivo = self.io.recogeCoordenada("Coordenada x donde quiere mover ")
                 yObjetivo = self.io.recogeCoordenada("Coordenada y donde quiere mover ")
-                if not any( coor for coor in self.tablero.movimientosTrasComerFicha(x, y) if coor == (xObjetivo, yObjetivo) ):
+                if not any( coor for coor in nuevoTablero.movimientosTrasComerFicha(x, y) if coor == (xObjetivo, yObjetivo) ):
                     self.io.output("Esas coordenadas no corresponden con un destino de esta ficha")
                     xObjetivo = -1
                     continue
 
-            nuevoTablero = self.moverFicha(x, y, xObjetivo, yObjetivo)
+            viejoTablero = nuevoTablero
+            nuevoTablero = viejoTablero.tableroTrasMovimientoFicha(x, y, xObjetivo, yObjetivo)
 
             #Comprueba si alguna ficha del equipo esta en posicion de dama
             damaColocada = nuevoTablero.peonesPorDamas()
@@ -120,10 +113,14 @@ class GestorTurnos():
 
     def equipoGanador(self):
         ganador = None
+        equiposSinOpciones = ()
         for equipo in self.tablero.EQUIPOS:
             if not self.tablero.fichasDelEquipo[equipo]:
+                equiposSinOpciones += (equipo, )
                 continue
-            if any(self.tablero.movimientosEquipo(equipo)):
+                
+            if not any(self.tablero.movimientosEquipo(equipo)):
+                equiposSinOpciones += (equipo, )
                 continue
 
             if ganador:
@@ -131,10 +128,14 @@ class GestorTurnos():
                 break
 
             ganador = equipo
+
+        if self.tablero.EQUIPOS == equiposSinOpciones:
+            return "TABLAS"
+
         return ganador
 
     def imprimeEquipoGanador(self):
-        self.io.output(self.equipoGanador() + "ha ganado")
+        self.io.output(self.equipoGanador() + " ha ganado")
 
 
     def jugadorContraIA(self):
@@ -175,10 +176,15 @@ class GestorTurnos():
 class PruebasTurnos(unittest.TestCase):
     def setUp(self):
         self.gturnos = GestorTurnos()
+
+    def testJugadorContraJugador(self):
+        self.gturnos.jugadorContraJugador()
+        pass
+
+    def testBloqueado(self):
+        self.gturnos = GestorTurnos(longTablero=2)
         self.gturnos.jugadorContraJugador()
 
-    def testInicial(self):
-        pass
 
 if __name__ == "__main__":
     unittest.main()
