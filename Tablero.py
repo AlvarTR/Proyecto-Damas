@@ -31,7 +31,7 @@ class Tablero():
                 fin = filasPeones-1 #-1 para hacer 0 -> self.FILAS_PEONES-1 (2) en el bucle
 
             for y in range(inicio, fin+1): #+1 porque "final" es el ultimo valor que queremos rellenar
-                for x in iter(x for x in range(self.LONG_TABLERO) if self.posicionValida(x, y)):
+                for x in (x for x in range(self.LONG_TABLERO) if self.posicionValida(x, y)):
                     self.fichasDelEquipo[e][ (x, y) ] = self.PEON
 
 
@@ -77,11 +77,17 @@ class Tablero():
 
     def peonesPorDamas(self):
         EH = None
-        tableroCambiado = False
-        for e in self.EQUIPOS:
-            filaDama = self.filaObjetivoDelEquipo[e]
-            if any(x for x in range(self.LONG_TABLERO) if ((x, filaDama), self.PEON) in self.fichasDelEquipo[e].items()):
-                tableroCambiado = True
+
+        def peonesEnPosDama(self):
+            tableroCambiado = False
+            for e in self.EQUIPOS:
+                filaDama = self.filaObjetivoDelEquipo[e]
+                if any(x for x in range(self.LONG_TABLERO) if ((x, filaDama), self.PEON) in self.fichasDelEquipo[e].items()):
+                    tableroCambiado = True
+                    break
+            return tableroCambiado
+
+        tableroCambiado = self.peonesEnPosDama()
 
         if not tableroCambiado:
             return EH
@@ -180,7 +186,7 @@ class Tablero():
         if not equipo:
             return EH
 
-        if not any(coor for coor in self.movimientosFicha(xFicha, yFicha) if coor == (xObjetivo, yObjetivo)):
+        if not (xObjetivo, yObjetivo) in self.movimientosFicha(xFicha, yFicha):
             return EH
 
         sim = self.copia()
@@ -224,7 +230,6 @@ class Tablero():
                     continue
 
                 string += "_"
-
 
         string += "\n "
         for i in range(self.LONG_TABLERO):

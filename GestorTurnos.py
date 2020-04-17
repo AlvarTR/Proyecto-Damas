@@ -53,7 +53,7 @@ class GestorTurnos():
 
             xObjetivo = self.io.recogeCoordenada("Coordenada x donde quiere mover ")
             yObjetivo = self.io.recogeCoordenada("Coordenada y donde quiere mover ")
-            if not any( coor for coor in self.tablero.movimientosFicha(x, y) if coor == (xObjetivo, yObjetivo) ):
+            if not (xObjetivo, yObjetivo) in self.tablero.movimientosFicha(x, y):
                 self.io.output("Esas coordenadas no corresponden con un destino de esta ficha")
                 x = -1
                 continue
@@ -84,7 +84,7 @@ class GestorTurnos():
 
                 xObjetivo = self.io.recogeCoordenada("Coordenada x donde quiere mover ")
                 yObjetivo = self.io.recogeCoordenada("Coordenada y donde quiere mover ")
-                if not any( coor for coor in nuevoTablero.movimientosTrasComerFicha(x, y) if coor == (xObjetivo, yObjetivo) ):
+                if not (xObjetivo, yObjetivo) in nuevoTablero.movimientosTrasComerFicha(x, y):
                     self.io.output("Esas coordenadas no corresponden con un destino de esta ficha")
                     xObjetivo = -1
                     continue
@@ -118,7 +118,7 @@ class GestorTurnos():
             if not self.tablero.fichasDelEquipo[equipo]:
                 equiposSinOpciones += (equipo, )
                 continue
-                
+
             if not any(self.tablero.movimientosEquipo(equipo)):
                 equiposSinOpciones += (equipo, )
                 continue
