@@ -28,10 +28,12 @@ class Tablero():
             if self.filaObjetivoDelEquipo[e] == primeraFila:
                 inicio = self.LONG_TABLERO - filasPeones
             elif self.filaObjetivoDelEquipo[e] == ultimaFila:
-                fin = filasPeones-1 #-1 para hacer 0 -> self.FILAS_PEONES-1 (2) en el bucle
+                fin = filasPeones - 1 #-1 para hacer 0 -> self.FILAS_PEONES-1 (2) en el bucle
 
             for y in range(inicio, fin+1): #+1 porque "final" es el ultimo valor que queremos rellenar
-                for x in (x for x in range(self.LONG_TABLERO) if self.posicionValida(x, y)):
+                for x in range(self.LONG_TABLERO):
+                    if not self.posicionValida(x, y):
+                        continue
                     self.fichasDelEquipo[e][ (x, y) ] = self.PEON
 
 
@@ -48,17 +50,16 @@ class Tablero():
 
     def equipoEnCoordenadas(self, x, y):
         EH = None
-
         if not self.posicionValida(x, y):
             return EH
 
         equipoEncontrado = None
         for e, fichasEquipo in self.fichasDelEquipo.items():
             if (x, y) in fichasEquipo:
+                #Si encuentra dos equipos, malo
                 if equipoEncontrado is not None:
                     return EH
                 equipoEncontrado = e
-
 
         return equipoEncontrado
 
@@ -67,38 +68,14 @@ class Tablero():
         if equipo not in self.EQUIPOS:
             return EH
 
-        coordenadasValidas = 0
+        fichasBienColocadas = 0
         for (x, y) in self.fichasDelEquipo[equipo] :
             if not self.posicionValida(x, y):
                 continue
-            coordenadasValidas += 1
+            fichasBienColocadas += 1
 
-        return coordenadasValidas
+        return fichasBienColocadas
 
-    def peonesPorDamas(self):
-        EH = None
-
-        def peonesEnPosDama(self):
-            tableroCambiado = False
-            for e in self.EQUIPOS:
-                filaDama = self.filaObjetivoDelEquipo[e]
-                if any(x for x in range(self.LONG_TABLERO) if ((x, filaDama), self.PEON) in self.fichasDelEquipo[e].items()):
-                    tableroCambiado = True
-                    break
-            return tableroCambiado
-
-        tableroCambiado = self.peonesEnPosDama()
-
-        if not tableroCambiado:
-            return EH
-
-        tableroNuevasDamas = self.copia()
-        for e in self.EQUIPOS:
-            filaDama = self.filaObjetivoDelEquipo[e]
-            for x in (x for x in range(self.LONG_TABLERO) if ((x, filaDama), self.PEON) in self.fichasDelEquipo[e].items()):
-                tableroNuevasDamas.fichasDelEquipo[e][ (x, filaDama) ] = tableroNuevasDamas.DAMA
-
-        return tableroNuevasDamas
 
     def rangoFicha(self, x, y):
         EH = iter(())
@@ -111,19 +88,15 @@ class Tablero():
         dirFicha = -1 if self.filaObjetivoDelEquipo[equipo] - y < 0 else 1
 
         direccionesConFichaBloqueando = set()
-        i = 0
-        while i < ficha.movMax:
-            i += 1
-
+        i = 1
+        while i <= ficha.movMax:
             opcionesY = (y + dirFicha*i, )
             if ficha.puedeIrAtras:
                 opcionesY = (y - i, y + i)
 
             for posibleY in opcionesY:
-                if not self.posicionValida(posibleY%2, posibleY):
-                    continue
-
                 dirPosibleY = -1 if posibleY - y < 0 else 1
+
                 for posibleX in (x - i, x + i):
                     if not self.posicionValida(posibleX, posibleY):
                         continue
@@ -136,6 +109,7 @@ class Tablero():
                         direccionesConFichaBloqueando.add( (dirPosibleX, dirPosibleY) )
 
                     yield (posibleX, posibleY)
+            i += 1
 
     def desplazamientoFicha(self, x, y):
         for xObjetivo, yObjetivo in self.rangoFicha(x, y):
@@ -145,11 +119,12 @@ class Tablero():
 
     def movimientosTrasComerFicha(self, x, y):
         EH = iter(())
+
         equipo = self.equipoEnCoordenadas(x, y)
         if not equipo:
             return EH
 
-        for xObjetivo, yObjetivo in self.rangoFicha(x, y):
+        for (xObjetivo, yObjetivo) in self.rangoFicha(x, y):
             equipoObjetivo = self.equipoEnCoordenadas(xObjetivo, yObjetivo)
             if not equipoObjetivo:
                 continue
@@ -209,8 +184,32 @@ class Tablero():
         sim.fichasDelEquipo[equipoObjetivo].pop( (xAnterior, yAnterior) )
         return sim
 
+    def peonesEnPosDama(self):
+        cambiarPeonesPorDamas = False
+        for e in self.EQUIPOS:
+            filaDama = self.filaObjetivoDelEquipo[e]
+            if any(x for x in range(self.LONG_TABLERO) if ((x, filaDama), self.PEON) in self.fichasDelEquipo[e].items()):
+                cambiarPeonesPorDamas = True
+                break
+        return cambiarPeonesPorDamas
 
-    def tableroConResaltes(self, coordenadasAResaltar=()):
+    def peonesPorDamas(self):
+        EH = None
+        if not self.peonesEnPosDama():
+            return EH
+
+        tableroNuevasDamas = self.copia()
+        for e in self.EQUIPOS:
+            filaDama = self.filaObjetivoDelEquipo[e]
+            for x in range(self.LONG_TABLERO):
+                if ((x, filaDama), self.PEON) not in self.fichasDelEquipo[e].items():
+                    continue
+                tableroNuevasDamas.fichasDelEquipo[e][ (x, filaDama) ] = tableroNuevasDamas.DAMA
+
+        return tableroNuevasDamas
+
+
+    def tableroResaltado(self, coordenadasAResaltar=()):
         CARACTER_RESALTE = "■" #chr(9632)
 
         setCoordenadas = set(coordenadasAResaltar)
@@ -242,16 +241,16 @@ class Tablero():
         return string
 
     def tableroConMovimientosFicha(self, x, y):
-        return self.tableroConResaltes(self.movimientosFicha(x, y))
+        return self.tableroResaltado(self.movimientosFicha(x, y))
 
     def tableroConComidaFicha(self, x, y):
-        return self.tableroConResaltes(self.movimientosTrasComerFicha(x, y))
+        return self.tableroResaltado(self.movimientosTrasComerFicha(x, y))
 
     def tableroConMovimientosEquipo(self, equipo):
-        return self.tableroConResaltes(self.movimientosEquipo(equipo))
+        return self.tableroResaltado(self.movimientosEquipo(equipo))
 
     def __str__(self):
-        return self.tableroConResaltes()
+        return self.tableroResaltado()
 
 
     def __eq__(self, other):

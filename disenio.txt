@@ -3,22 +3,22 @@
 PRINCIPALES CARACTERÍSTICAS
 - Poco espacio de cómputo
     IA más profunda
-- Funcional
-    Las fichas del tablero se mueven "sin estados"
+- "Funcional"
+    El tablero es "inmutable", solo puede evolucionar a otro tablero
     Mejor para IA
 
--> Iteradores siempre que se pueda
--> Equipos como diccionarios de coordenadas
+-> Iteradores siempre que se pueda (lazy, no calcula datos que no se van a usar)
+-> Fichas de cada equipo como diccionario de coordenadas
 
 
 COMPONENTES
 - Tablero
     Guarda:
-      Tamaño del cuadrado
+      Tamaño del cuadrado de casillas
       Posición actual de las fichas
     Calcula:
       Si las fichas están bien puestas
-      Como imprimir el tablero
+      Cómo imprimir el tablero
         Tablero por defecto
         Tablero resaltando movimientos
           Equipo
@@ -29,28 +29,33 @@ COMPONENTES
       El rango de movimiento de sus fichas
         Comer
         Moverse
+      Cómo evoluciona el tablero tras mover a posiciones validas
 
 - Fichas
     Guarda:
       Tipos y características de fichas
-      Como imprimir cada ficha
+      Cómo imprimir cada ficha
     Calcula:
       Nada
 
 - GestorTurnos
     Guarda:
-      Las fichas comidas por cada jugador
+      #Las fichas comidas por cada jugador
       A quién le toca mover
     Calcula:
-      A quién le toca mover próximamente
-      Bloquear los movimientos del jugador que no está jugando
+      Desarrollo de cada turno
 
 - DamasPorConsola
     Guarda:
-      GestorTurnos utilizado
+      Strings a utilizar por consola
+    Calcula:
+      I/O por consola
+
+- IADamas
+    Guarda:
       IIAA implementadas
     Calcula:
-      Entradas por consola
+      Próximo turno de la IA
 
 - Reglas (DEPRECATED)
     Guarda:

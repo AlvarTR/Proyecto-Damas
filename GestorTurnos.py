@@ -1,5 +1,5 @@
 import ValoresPorDefecto as vpd
-import DamasPorConsola
+import DamasPorConsola as dpc
 import Tablero
 import unittest
 
@@ -10,7 +10,7 @@ class GestorTurnos():
         self.tablero = Tablero.Tablero(longTablero, equipos)
         self.tablero.colocaFichasIniciales()
 
-        self.io = DamasPorConsola.DamasPorConsola()
+        self.io = dpc.DamasPorConsola()
 
         self.turno = 0
         self.ronda = 0
@@ -69,8 +69,10 @@ class GestorTurnos():
             self.turnoConcluido()
             return damaColocada
 
+        #Comer implica seguir comiendo siempre que sea posible
         i = 1
         while (xObjetivo, yObjetivo) in viejoTablero.movimientosTrasComerFicha(x, y) and any(nuevoTablero.movimientosTrasComerFicha(xObjetivo, yObjetivo)):
+            #Comprueba la posibilidad de algun combo
             if i == 1:
                 self.io.output("Combo!!")
             elif i > 1:
@@ -80,6 +82,7 @@ class GestorTurnos():
 
             xObjetivo = -1
             while xObjetivo < 0:
+                #Comprueba coordenadas que se introducen
                 self.io.output(nuevoTablero.tableroConComidaFicha(x, y))
 
                 xObjetivo = self.io.recogeCoordenada("Coordenada x donde quiere mover ")
@@ -99,7 +102,8 @@ class GestorTurnos():
                 self.turnoConcluido()
                 return damaColocada
 
-        #Comer implica seguir comiendo siempre que sea posible
+            #Comer implica seguir comiendo siempre que sea posible
+
         #Termina el turno
         self.turnoConcluido()
         return nuevoTablero
@@ -177,14 +181,11 @@ class PruebasTurnos(unittest.TestCase):
     def setUp(self):
         self.gturnos = GestorTurnos()
 
-    def testJugadorContraJugador(self):
-        self.gturnos.jugadorContraJugador()
-        pass
-
     def testBloqueado(self):
         self.gturnos = GestorTurnos(longTablero=2)
         self.gturnos.jugadorContraJugador()
 
 
 if __name__ == "__main__":
+    GestorTurnos().jugadorContraJugador()
     unittest.main()
